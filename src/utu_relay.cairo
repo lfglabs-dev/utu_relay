@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod UtuRelay {
-    use utu_relay::interfaces::{IUtuRelay, BlockHeader, BlockStatus};
+    use crate::{bitcoin::block::BlockHeader, interfaces::{IUtuRelay, BlockStatus}};
     use starknet::storage::Map;
 
     #[storage]

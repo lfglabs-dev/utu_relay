@@ -1,6 +1,9 @@
 pub mod utu_relay;
 pub mod interfaces;
-use utu_relay::UtuRelay;
-
-#[cfg(test)]
-mod tests {}
+pub mod bitcoin {
+    pub mod block;
+}
+pub mod utils {
+    pub mod hex;
+    pub mod hash;
+}
