@@ -14,7 +14,7 @@ pub trait IUtuRelay<TContractState> {
         ref self: TContractState,
         starting_height: u64,
         height_proof: Option<felt252>,
-        blocks: Array<BlockHeader>
+        blocks: Span<BlockHeader>
     ) -> bool;
 
     fn challenge_block(

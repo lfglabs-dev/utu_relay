@@ -21,7 +21,7 @@ pub mod UtuRelay {
             ref self: ContractState,
             starting_height: u64,
             height_proof: Option<felt252>,
-            blocks: Array<BlockHeader>
+            mut blocks: Span<BlockHeader>
         ) -> bool {
             // Implementation for register_blocks
             // For now, we'll just return false
