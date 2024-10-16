@@ -28,8 +28,7 @@ pub struct BlockHeader {
 /// HumanReadableBlockHeader is provided for testing purposes.
 /// In Cairo, the default encoding is big-endian, so this struct allows
 /// creation of a BlockHeader from human-readable values.
-/// Note: The Digest and bits fields are already in
-/// little-endian format.
+/// Note: The Digest fields are already in little-endian format.
 
 #[derive(Drop, Copy, Debug, PartialEq, Default, Serde)]
 pub struct HumanReadableBlockHeader {
@@ -48,7 +47,7 @@ impl IntoBlockHeader of Into<HumanReadableBlockHeader, BlockHeader> {
             prev_block_hash: self.prev_block_hash,
             merkle_root_hash: self.merkle_root_hash,
             time: u32_byte_reverse(self.time),
-            bits: self.bits,
+            bits: u32_byte_reverse(self.bits),
             nonce: u32_byte_reverse(self.nonce),
         }
     }
@@ -104,7 +103,7 @@ mod tests {
             ),
             time: 1231731025_u32,
             bits: 0x1d00ffff_u32,
-            nonce: 0x709e3e28_u32,
+            nonce: 1889418792,
         };
 
         // Convert to full little endian BlockHeader
@@ -134,7 +133,7 @@ mod tests {
             ),
             time: 1231731025_u32,
             bits: 0x1d00ffff_u32,
-            nonce: 0x709e3e28_u32,
+            nonce: 1889418792,
         };
 
         let header: BlockHeader = human_readable_header.into();
