@@ -11,7 +11,7 @@ use core::num::traits::zero::Zero;
 
 /// 256-bit hash digest.
 /// Represented as an array of 4-byte words.
-#[derive(Copy, Drop, Debug, Default, Serde)]
+#[derive(Copy, Drop, Debug, Default, Serde, starknet::Store)]
 pub struct Digest {
     pub value: [u32; 8]
 }

@@ -126,10 +126,21 @@ pub impl PowVerificationImpl of PowVerificationTrait {
     }
 }
 
+pub fn compute_pow_from_target(target: u256) -> u128 {
+    // For exactly all positive integers x that are not factors of 2^256,
+    // (2^256-1)/x = (2^256)/x
+    // Otherwise, we just misestimate by 1
+    // todo: optimize
+    let max_value: u256 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+    (max_value / target).try_into().unwrap()
+}
 
 #[cfg(test)]
 mod tests {
-    use super::{BlockHeader, HumanReadableBlockHeader, BlockHashTrait, PowVerificationTrait};
+    use super::{
+        BlockHeader, HumanReadableBlockHeader, BlockHashTrait, PowVerificationTrait,
+        compute_pow_from_target
+    };
     use crate::utils::hex::hex_to_hash_rev;
 
     // compute block hash tests
@@ -189,6 +200,29 @@ mod tests {
         assert_eq!(pow, 4_295_032_833);
     }
 
+
+    #[test]
+    fn test_pow_from_target() {
+        // Block 170
+        let human_readable_header = HumanReadableBlockHeader {
+            version: 1_u32,
+            prev_block_hash: hex_to_hash_rev(
+                "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
+            ),
+            merkle_root_hash: hex_to_hash_rev(
+                "7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"
+            ),
+            time: 1231731025_u32,
+            bits: 0x1d00ffff_u32,
+            nonce: 1889418792,
+        };
+
+        let header: BlockHeader = human_readable_header.into();
+        let target = header.compute_target_threshold();
+        let pow = compute_pow_from_target(target);
+        // This is an estimation of the amount of hashes to compute a valid block hash
+        assert_eq!(pow, 4_295_032_833);
+    }
 
     // compute_target_threshold tests
 
