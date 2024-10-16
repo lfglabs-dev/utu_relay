@@ -1,5 +1,6 @@
 use crate::utils::{
-    pow2::pow2, numeric::u32_byte_reverse, hash::Digest, double_sha256::double_sha256_u32_array
+    pow2::{pow2_u128, pow2_u256}, numeric::u32_byte_reverse, hash::Digest,
+    double_sha256::double_sha256_u32_array
 };
 use core::traits::DivRem;
 
@@ -74,6 +75,10 @@ pub impl BlockHashImpl of BlockHashTrait {
     }
 }
 
+/// Maximum difficulty target allowed
+const MAX_TARGET: u256 = 0x00000000FFFF0000000000000000000000000000000000000000000000000000;
+
+
 #[generate_trait]
 pub impl PowVerificationImpl of PowVerificationTrait {
     /// Computes the Proof of Work (PoW) for the block.
@@ -81,17 +86,50 @@ pub impl PowVerificationImpl of PowVerificationTrait {
     /// to reach the block's difficulty target.
     fn compute_pow(self: @BlockHeader) -> u128 {
         let (exponent, mantissa) = DivRem::div_rem(*self.bits, 0x1000000);
-        (pow2(256 - 8 * (exponent - 3)) / mantissa.into())
+        (pow2_u128(256 - 8 * (exponent - 3)) / mantissa.into())
+    }
+
+    /// Computes the target threshold for the block.
+    fn compute_target_threshold(self: @BlockHeader) -> u256 {
+        let (exponent, mantissa) = DivRem::div_rem(*self.bits, 0x1000000);
+
+        if exponent == 0 {
+            // Special case: exponent 0 means we use the mantissa as-is
+            return mantissa.into();
+        }
+
+        // Check if mantissa is valid (most significant byte has to be < 0x80)
+        // https://bitcoin.stackexchange.com/questions/113535/why-1d00ffff-and-not-1cffffff-as-target-in-genesis-block
+        if mantissa > 0x7FFFFF {
+            panic!("Target cannot have most significant bit set");
+        };
+
+        // Calculate the full target value
+        if exponent <= 3 {
+            let shift = 8 * (3 - exponent);
+            // MAX_TARGET > 2^128 so we can return early
+            (mantissa.into() / pow2_u128(shift)).into()
+        } else if exponent <= 32 {
+            let shift = 8 * (exponent - 3);
+            let target = (mantissa.into() * pow2_u256(shift));
+            // Ensure the target doesn't exceed the maximum allowed value
+            if target > MAX_TARGET {
+                panic!("Target exceeds maximum value");
+            }
+            target
+        } else {
+            panic!("Target size cannot exceed 32 bytes")
+        }
     }
 }
 
 
 #[cfg(test)]
 mod tests {
-    use super::PowVerificationTrait;
-    use crate::utils::hex::{hex_to_hash_rev};
-    use super::{BlockHeader, HumanReadableBlockHeader, BlockHashTrait};
+    use super::{BlockHeader, HumanReadableBlockHeader, BlockHashTrait, PowVerificationTrait};
+    use crate::utils::hex::hex_to_hash_rev;
 
+    // compute block hash tests
 
     #[test]
     fn test_block_hash() {
@@ -123,6 +161,9 @@ mod tests {
         assert_eq!(computed_hash, expected_hash, "Computed hash does not match expected hash");
     }
 
+
+    // compute_pow tests
+
     #[test]
     fn test_pow() {
         // Block 170
@@ -143,5 +184,108 @@ mod tests {
         let pow = header.compute_pow();
         // This is an estimation of the amount of hashes to compute a valid block hash
         assert_eq!(pow, 4_295_032_833);
+    }
+
+
+    // compute_target_threshold tests
+
+    #[test]
+    fn test_target_threshold_01003456() {
+        let header = BlockHeader { bits: 0x01003456, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(result, 0x00_u256, "Incorrect target for 0x01003456");
+    }
+
+    #[test]
+    fn test_target_threshold_01123456() {
+        let header = BlockHeader { bits: 0x01123456, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(result, 0x12_u256, "Incorrect target for 0x01123456");
+    }
+
+    #[test]
+    fn test_target_threshold_02008000() {
+        let header = BlockHeader { bits: 0x02008000, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(result, 0x80_u256, "Incorrect target for 0x02008000");
+    }
+
+    #[test]
+    fn test_target_threshold_181bc330() {
+        let header = BlockHeader { bits: 0x181bc330, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(
+            result,
+            0x1bc330000000000000000000000000000000000000000000_u256,
+            "Incorrect target for 0x181bc330"
+        );
+    }
+
+    #[test]
+    fn test_target_threshold_05009234() {
+        let header = BlockHeader { bits: 0x05009234, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(result, 0x92340000_u256, "Incorrect target for 0x05009234");
+    }
+
+    #[test]
+    fn test_target_threshold_04123456() {
+        let header = BlockHeader { bits: 0x04123456, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(result, 0x12345600_u256, "Incorrect target for 0x04123456");
+    }
+
+    #[test]
+    fn test_target_threshold_1d00ffff() {
+        let header = BlockHeader { bits: 0x1d00ffff, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(
+            result,
+            0x00000000ffff0000000000000000000000000000000000000000000000000000_u256,
+            "Incorrect target for 0x1d00ffff"
+        );
+    }
+
+    #[test]
+    fn test_target_threshold_1c0d3142() {
+        let header = BlockHeader { bits: 0x1c0d3142, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(
+            result,
+            0x000000000d314200000000000000000000000000000000000000000000000000_u256,
+            "Incorrect target for 0x1c0d3142"
+        );
+    }
+
+    #[test]
+    fn test_target_threshold_1707a429() {
+        let header = BlockHeader { bits: 0x1707a429, ..Default::default() };
+        let result = header.compute_target_threshold();
+        assert_eq!(
+            result,
+            0x00000000000000000007a4290000000000000000000000000000000000000000_u256,
+            "Incorrect target for 0x1707a429"
+        );
+    }
+
+    #[test]
+    #[should_panic(expected: "Target cannot have most significant bit set")]
+    fn test_target_threshold_msb_set() {
+        let header = BlockHeader { bits: 0x03800000, ..Default::default() };
+        header.compute_target_threshold();
+    }
+
+    #[test]
+    #[should_panic(expected: "Target size cannot exceed 32 bytes")]
+    fn test_target_threshold_exponent_too_large() {
+        let header = BlockHeader { bits: 0x2100aa00, ..Default::default() };
+        header.compute_target_threshold();
+    }
+
+    #[test]
+    #[should_panic(expected: "Target exceeds maximum value")]
+    fn test_target_threshold_exceeds_max() {
+        let header = BlockHeader { bits: 0x20010000, ..Default::default() };
+        header.compute_target_threshold();
     }
 }
