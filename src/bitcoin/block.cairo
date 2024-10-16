@@ -31,7 +31,7 @@ pub struct BlockHeader {
 /// In Cairo, the default encoding is big-endian, so this struct allows
 /// creation of a BlockHeader from human-readable values.
 /// Note: The Digest fields are already in little-endian format.
-
+// todo: BlockHeader with HumanReadable constructor and default one?
 #[derive(Drop, Copy, Debug, PartialEq, Default, Serde)]
 pub struct HumanReadableBlockHeader {
     pub version: u32,
@@ -42,6 +42,7 @@ pub struct HumanReadableBlockHeader {
     pub nonce: u32,
 }
 
+// todo: Precompiled Block Header?
 impl IntoBlockHeader of Into<HumanReadableBlockHeader, BlockHeader> {
     fn into(self: HumanReadableBlockHeader) -> BlockHeader {
         BlockHeader {
@@ -50,6 +51,7 @@ impl IntoBlockHeader of Into<HumanReadableBlockHeader, BlockHeader> {
             merkle_root_hash: self.merkle_root_hash,
             time: u32_byte_reverse(self.time),
             // we want to keep bits in little endian to allow for pow computation
+            // todo: split mantissa and precompute reversed?
             bits: self.bits,
             nonce: u32_byte_reverse(self.nonce),
         }
@@ -90,6 +92,7 @@ pub impl PowVerificationImpl of PowVerificationTrait {
     }
 
     /// Computes the target threshold for the block.
+    /// todo: optimize for errors and maths
     fn compute_target_threshold(self: @BlockHeader) -> u256 {
         let (exponent, mantissa) = DivRem::div_rem(*self.bits, 0x1000000);
 
