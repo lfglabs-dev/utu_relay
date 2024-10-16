@@ -1,6 +1,7 @@
 use crate::utils::{
     pow2::pow2, numeric::u32_byte_reverse, hash::Digest, double_sha256::double_sha256_u32_array
 };
+use core::traits::DivRem;
 
 /// Bitcoin block header structure based on:
 /// https://developer.bitcoin.org/reference/block_chain.html#block-headers
@@ -47,7 +48,8 @@ impl IntoBlockHeader of Into<HumanReadableBlockHeader, BlockHeader> {
             prev_block_hash: self.prev_block_hash,
             merkle_root_hash: self.merkle_root_hash,
             time: u32_byte_reverse(self.time),
-            bits: u32_byte_reverse(self.bits),
+            // we want to keep bits in little endian to allow for pow computation
+            bits: self.bits,
             nonce: u32_byte_reverse(self.nonce),
         }
     }
@@ -64,7 +66,8 @@ pub impl BlockHashImpl of BlockHashTrait {
         header_data_u32.append_span(self.merkle_root_hash.value.span());
 
         header_data_u32.append(*self.time);
-        header_data_u32.append(*self.bits);
+        // bits is not stored in little endian
+        header_data_u32.append(u32_byte_reverse(*self.bits));
         header_data_u32.append(*self.nonce);
 
         double_sha256_u32_array(header_data_u32)
@@ -77,7 +80,7 @@ pub impl PowVerificationImpl of PowVerificationTrait {
     /// Returns the expected number of hashes that would need to be generated
     /// to reach the block's difficulty target.
     fn compute_pow(self: @BlockHeader) -> u128 {
-        let (exponent, mantissa) = core::traits::DivRem::div_rem(*self.bits, 0x1000000);
+        let (exponent, mantissa) = DivRem::div_rem(*self.bits, 0x1000000);
         (pow2(256 - 8 * (exponent - 3)) / mantissa.into())
     }
 }
