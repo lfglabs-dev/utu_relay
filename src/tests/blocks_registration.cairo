@@ -120,3 +120,78 @@ fn test_two_blocks_registration() {
         'unexpected status for block 171'
     );
 }
+
+#[test]
+fn test_same_height_registration() {
+    let utu = deploy_utu();
+
+    start_cheat_block_timestamp(utu.contract_address, 1728969824);
+
+    // Block 865699 (first version)
+    let block_865699_hash_1 = hex_to_hash_rev(
+        "00000000000000000002648ba35429c4e46e38d5261331bbddd7244baf94d515"
+    );
+    let block_865699_1: BlockHeader = HumanReadableBlockHeader {
+        version: 632832000_u32,
+        prev_block_hash: hex_to_hash_rev(
+            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
+        ),
+        merkle_root_hash: hex_to_hash_rev(
+            "c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"
+        ),
+        time: 1728969824_u32,
+        bits: 0x17030ecd_u32,
+        nonce: 2662381191,
+    }
+        .into();
+
+    // Block 865699 (second version, canonical chain)
+    let block_865699_hash_2 = hex_to_hash_rev(
+        "00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"
+    );
+    let block_865699_2: BlockHeader = HumanReadableBlockHeader {
+        version: 905969664_u32,
+        prev_block_hash: hex_to_hash_rev(
+            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
+        ),
+        merkle_root_hash: hex_to_hash_rev(
+            "92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"
+        ),
+        time: 1728969853_u32,
+        bits: 0x17030ecd_u32,
+        nonce: 3760750539,
+    }
+        .into();
+
+    // Register both blocks
+    let block_headers: Array<BlockHeader> = array![block_865699_1, block_865699_2];
+    utu.register_blocks(block_headers.span());
+
+    // Check status of the first block
+    let status_1 = utu.get_status(block_865699_hash_1);
+    assert(
+        status_1 == BlockStatus {
+            registration_timestamp: 1728969824,
+            prev_block_digest: hex_to_hash_rev(
+                "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
+            ),
+            challenged_cpow: 0,
+            pow: 395356030850084270690399,
+        },
+        'unexpected status for block 1'
+    );
+
+    // Check status of the second block
+    let status_2 = utu.get_status(block_865699_hash_2);
+    assert(
+        status_2 == BlockStatus {
+            registration_timestamp: 1728969824,
+            prev_block_digest: hex_to_hash_rev(
+                "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
+            ),
+            challenged_cpow: 0,
+            pow: 395356030850084270690399,
+        },
+        'unexpected status for block 2'
+    );
+}
