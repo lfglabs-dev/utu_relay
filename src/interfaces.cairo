@@ -1,7 +1,7 @@
 use crate::{utils::hash::Digest, bitcoin::block::BlockHeader};
 use starknet::get_block_timestamp;
 
-#[derive(Drop, Serde, Default, starknet::Store)]
+#[derive(Drop, Serde, Debug, Default, PartialEq, starknet::Store)]
 pub struct BlockStatus {
     // to do: instead of storing the prev_block_digest, we could store its potential address in
     // memory
@@ -51,5 +51,5 @@ pub trait IUtuRelay<TContractState> {
         ref self: TContractState, block_height: u64, blocks: Array<BlockHeader>
     ) -> bool;
 
-    fn get_status(self: @TContractState, block_height: u64) -> Option<BlockStatus>;
+    fn get_status(self: @TContractState, block_hash: Digest) -> BlockStatus;
 }

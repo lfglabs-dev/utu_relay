@@ -40,7 +40,7 @@ pub mod UtuRelay {
                         let block_hash = block.hash();
                         let target_threshold = block.compute_target_threshold();
                         // verifies pow spent
-                        if block_hash.into() < target_threshold {
+                        if block_hash.into() > target_threshold {
                             panic!("Block hash is higher than its target threshold.");
                         };
                         // estimate pow value
@@ -110,10 +110,8 @@ pub mod UtuRelay {
             false
         }
 
-        fn get_status(self: @ContractState, block_height: u64) -> Option<BlockStatus> {
-            // Implementation for get_status
-            // For now, we'll just return None
-            Option::None
+        fn get_status(self: @ContractState, block_hash: Digest) -> BlockStatus {
+            self.blocks.read(block_hash)
         }
     }
 }
