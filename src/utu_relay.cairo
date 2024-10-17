@@ -67,7 +67,9 @@ pub mod UtuRelay {
                     let next_cpow = self.register_blocks_helper(height + 1, blocks, block_hash);
                     let target_threshold = block.compute_target_threshold();
                     // verifies pow spent
-                    assert_lt!(block_hash.into(), target_threshold);
+                    if block_hash.into() < target_threshold {
+                        panic!("Block hash is higher than its target threshold.");
+                    };
 
                     let pow = compute_pow_from_target(target_threshold);
                     let existing_block = self.blocks.read(height);
