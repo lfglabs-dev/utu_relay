@@ -23,26 +23,26 @@ mod tests {
         let input: u32 = 0x12345678;
         let expected_output: u32 = 0x78563412;
         let result = u32_byte_reverse(input);
-        assert_eq!(result, expected_output);
+        assert(result == expected_output, '0x12345678 reverse failed');
 
         let input: u32 = 0xAABBCCDD;
         let expected_output: u32 = 0xDDCCBBAA;
         let result = u32_byte_reverse(input);
-        assert_eq!(result, expected_output);
+        assert(result == expected_output, '0xAABBCCDD reverse failed');
 
         let input: u32 = 0x000000FF;
         let expected_output: u32 = 0xFF000000;
         let result = u32_byte_reverse(input);
-        assert_eq!(result, expected_output);
+        assert(result == expected_output, '0x000000FF reverse failed');
 
         let input: u32 = 0x00FF00FF;
         let expected_output: u32 = 0xFF00FF00;
         let result = u32_byte_reverse(input);
-        assert_eq!(result, expected_output);
+        assert(result == expected_output, '0x00FF00FF reverse failed');
 
         let input: u32 = 0x00000000;
         let expected_output: u32 = 0x00000000;
         let result = u32_byte_reverse(input);
-        assert_eq!(result, expected_output);
+        assert(result == expected_output, '0x00000000 reverse failed');
     }
 }

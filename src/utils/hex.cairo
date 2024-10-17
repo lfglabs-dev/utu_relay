@@ -92,13 +92,17 @@ mod tests {
 
     #[test]
     fn test_bytes_from_hex() {
-        assert_eq!(@"hello starknet", @from_hex("68656c6c6f20737461726b6e6574"));
-        assert_eq!(@"hello starknet", @from_hex("68656C6C6F20737461726B6E6574"));
+        assert(
+            @"hello starknet" == @from_hex("68656c6c6f20737461726b6e6574"), 'from_hex lowercase'
+        );
+        assert(
+            @"hello starknet" == @from_hex("68656C6C6F20737461726B6E6574"), 'from_hex mixed case'
+        );
     }
 
     #[test]
     fn test_bytes_to_hex() {
-        assert_eq!(@"68656c6c6f20737461726b6e6574", @to_hex(@"hello starknet"));
+        assert(@"68656c6c6f20737461726b6e6574" == @to_hex(@"hello starknet"), 'to_hex conversion');
     }
 
     #[test]
@@ -116,6 +120,6 @@ mod tests {
             ]
         };
         let hex = "99887766554433221100ffeeddccbbaa8877665544332211f0debc9a78563412";
-        assert_eq!(hash, hex_to_hash_rev(hex));
+        assert(hash == hex_to_hash_rev(hex), 'hex_to_hash_rev conversion');
     }
 }

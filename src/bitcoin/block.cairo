@@ -172,7 +172,7 @@ mod tests {
             "00000000d1145790a8694403d4063f323d499e655c83426834d4ce2f8dd4a2ee"
         );
 
-        assert_eq!(computed_hash, expected_hash, "Computed hash does not match expected hash");
+        assert(computed_hash == expected_hash, 'Block hash mismatch');
     }
 
 
@@ -197,7 +197,7 @@ mod tests {
         let header: BlockHeader = human_readable_header.into();
         let pow = header.compute_pow();
         // This is an estimation of the amount of hashes to compute a valid block hash
-        assert_eq!(pow, 4_295_032_833);
+        assert(pow == 4_295_032_833, 'Incorrect PoW computation');
     }
 
 
@@ -221,7 +221,7 @@ mod tests {
         let target = header.compute_target_threshold();
         let pow = compute_pow_from_target(target);
         // This is an estimation of the amount of hashes to compute a valid block hash
-        assert_eq!(pow, 4_295_032_833);
+        assert(pow == 4_295_032_833, 'Incorrect PoW from target');
     }
 
     // compute_target_threshold tests
@@ -230,31 +230,30 @@ mod tests {
     fn test_target_threshold_01003456() {
         let header = BlockHeader { bits: 0x01003456, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(result, 0x00_u256, "Incorrect target for 0x01003456");
+        assert(result == 0x00_u256, 'Wrong target for 0x01003456');
     }
 
     #[test]
     fn test_target_threshold_01123456() {
         let header = BlockHeader { bits: 0x01123456, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(result, 0x12_u256, "Incorrect target for 0x01123456");
+        assert(result == 0x12_u256, 'Wrong target for 0x01123456');
     }
 
     #[test]
     fn test_target_threshold_02008000() {
         let header = BlockHeader { bits: 0x02008000, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(result, 0x80_u256, "Incorrect target for 0x02008000");
+        assert(result == 0x80_u256, 'Wrong target for 0x02008000');
     }
 
     #[test]
     fn test_target_threshold_181bc330() {
         let header = BlockHeader { bits: 0x181bc330, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(
-            result,
-            0x1bc330000000000000000000000000000000000000000000_u256,
-            "Incorrect target for 0x181bc330"
+        assert(
+            result == 0x1bc330000000000000000000000000000000000000000000_u256,
+            'Wrong target for 0x181bc330'
         );
     }
 
@@ -262,24 +261,23 @@ mod tests {
     fn test_target_threshold_05009234() {
         let header = BlockHeader { bits: 0x05009234, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(result, 0x92340000_u256, "Incorrect target for 0x05009234");
+        assert(result == 0x92340000_u256, 'Wrong target for 0x05009234');
     }
 
     #[test]
     fn test_target_threshold_04123456() {
         let header = BlockHeader { bits: 0x04123456, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(result, 0x12345600_u256, "Incorrect target for 0x04123456");
+        assert(result == 0x12345600_u256, 'Wrong target for 0x04123456');
     }
 
     #[test]
     fn test_target_threshold_1d00ffff() {
         let header = BlockHeader { bits: 0x1d00ffff, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(
-            result,
-            0x00000000ffff0000000000000000000000000000000000000000000000000000_u256,
-            "Incorrect target for 0x1d00ffff"
+        assert(
+            result == 0x00000000ffff0000000000000000000000000000000000000000000000000000_u256,
+            'Wrong target for 0x1d00ffff'
         );
     }
 
@@ -287,10 +285,9 @@ mod tests {
     fn test_target_threshold_1c0d3142() {
         let header = BlockHeader { bits: 0x1c0d3142, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(
-            result,
-            0x000000000d314200000000000000000000000000000000000000000000000000_u256,
-            "Incorrect target for 0x1c0d3142"
+        assert(
+            result == 0x000000000d314200000000000000000000000000000000000000000000000000_u256,
+            'Wrong target for 0x1c0d3142'
         );
     }
 
@@ -298,10 +295,9 @@ mod tests {
     fn test_target_threshold_1707a429() {
         let header = BlockHeader { bits: 0x1707a429, ..Default::default() };
         let result = header.compute_target_threshold();
-        assert_eq!(
-            result,
-            0x00000000000000000007a4290000000000000000000000000000000000000000_u256,
-            "Incorrect target for 0x1707a429"
+        assert(
+            result == 0x00000000000000000007a4290000000000000000000000000000000000000000_u256,
+            'Wrong target for 0x1707a429'
         );
     }
 

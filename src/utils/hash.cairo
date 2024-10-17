@@ -155,7 +155,7 @@ mod tests {
             ],
         };
 
-        assert_eq!(result_hash, expected_hash, "invalid results");
+        assert(result_hash == expected_hash, 'u256 to hash conversion failed');
     }
 
     #[test]
@@ -180,9 +180,8 @@ mod tests {
             low: 0x2143658709badcfe2143658709badcfe_u128,
         };
 
-        assert_eq!(result_u256, expected_u256, "invalid results");
+        assert(result_u256 == expected_u256, 'hash to u256 conversion failed');
     }
-
 
     #[test]
     fn test_hash_to_u256_to_hash() {
@@ -202,7 +201,7 @@ mod tests {
         let u256_value: u256 = hash_value.into();
         let result_hash: Digest = u256_value.into();
 
-        assert_eq!(result_hash, hash_value, "invalid results");
+        assert(result_hash == hash_value, 'hash->u256->hash failed');
     }
 
     #[test]
@@ -215,7 +214,7 @@ mod tests {
         let hash_value: Digest = u256_value.into();
         let result_u256: u256 = hash_value.into();
 
-        assert_eq!(result_u256, u256_value, "invalid results");
+        assert(result_u256 == u256_value, 'u256->hash->u256 failed');
     }
 
     #[test]
@@ -239,6 +238,6 @@ mod tests {
             "123456789abcdef01122334455667788aabbccddeeff00112233445566778899"
         );
 
-        assert_eq!(byte_array, expected_byte_array, "invalid results");
+        assert(byte_array == expected_byte_array, 'hash to ByteArray failed');
     }
 }
