@@ -4,11 +4,11 @@ Utu Relay is a Starknet smart contract that enables secure verification of Bitco
 
 ## Overview
 
-Utu Relay allows anyone to register multiple Bitcoin block hashes starting from any height on Starknet. Smart contracts can access these hashes, along with trust metrics like cumulative proof-of-work and unchallenged time, to verify that any Bitcoin transaction was accepted by the network.
+Utu Relay allows anyone to register Bitcoin block headers on Starknet and set the main chain. Smart contracts can access these blocks, along with trust metrics like cumulative proof-of-work and unchallenged time, to verify that any Bitcoin transaction was accepted by the network.
 
 Key features:
 - Verify any part of Bitcoin's history
-- Avoid redundant verifications
+- Maintain an official main chain
 - Strong security guarantees
 - Game theory incentives for maintaining accuracy
 
@@ -22,26 +22,29 @@ Key features:
 
 ## Contract Interface
 
-### register_blocks(starting_height, opt(height_proof), block_headers) → bool
+### register_blocks(blocks: Span<BlockHeader>)
 
-Register a list of Bitcoin blocks, returning `true` if any blocks are successfully registered.
+Register a list of Bitcoin block headers. Blocks don't need to be contiguous or in order.
 
-### challenge_block(block_height, proposed_block_headers)
+### set_main_chain(begin_height: u64, end_height: u64, end_block_hash: Digest)
+
+Set the official main chain for a given interval [begin_height, end_height). Verifies that the end block hash and all its parents are registered.
+
+### challenge_block(block_height: u64, blocks: Array<BlockHeader>) → bool
 
 Challenge and potentially update a registered block, with an incentive mechanism for successful updates.
 
-### get_status(block_hash)
+### get_status(block_height: u64) → Option<BlockStatus>
 
-Retrieve information about a given `block_hash`, including challenge status, registration timestamp, and cumulative proof-of-work.
+Retrieve information about a block at the given height, including its status and other relevant data.
 
 ## Usage Example
 
 Here's a simplified example of how to securely verify a Bitcoin transaction:
 
-1. Check if the block is unchallenged (or challenged value < 1T hashes) and at least 15 minutes have passed since registration.
-2. OR check if more than 24 hours have passed since registration (implying >51% hashrate control for 24+ hours would be needed to manipulate).
-
-Adjust verification requirements based on the specific security needs of your application.
+1. Ensure the block containing the transaction is part of the main chain using `set_main_chain`.
+2. Verify the block's status using `get_status` to check if it's unchallenged and has been registered for a sufficient time.
+3. Adjust verification requirements based on the specific security needs of your application.
 
 ## Fraud Detection and Reporting
 
@@ -63,4 +66,3 @@ However, these attacks are generally impractical due to:
 - Active monitoring: Honest users and watchers can submit fraud proofs, quickly challenging any false submissions.
 
 The combination of these factors significantly mitigates the risk of successful attacks on the Utu Relay system.
-
