@@ -10,3 +10,8 @@ pub mod utils {
     pub mod double_sha256;
     pub mod pow2;
 }
+#[cfg(test)]
+mod tests {
+    mod blocks_registration;
+    mod fork_resolutions;
+}
