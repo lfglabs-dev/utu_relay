@@ -1,6 +1,5 @@
 use crate::utils::{
-    pow2::{pow2_u128, pow2_u256}, numeric::u32_byte_reverse, hash::Digest,
-    double_sha256::double_sha256_u32_array
+    pow2::pow2_u128, numeric::u32_byte_reverse, hash::Digest, double_sha256::double_sha256_u32_array
 };
 use core::traits::DivRem;
 
@@ -96,32 +95,61 @@ pub impl PowVerificationImpl of PowVerificationTrait {
     fn compute_target_threshold(self: @BlockHeader) -> u256 {
         let (exponent, mantissa) = DivRem::div_rem(*self.bits, 0x1000000);
 
-        if exponent == 0 {
-            // Special case: exponent 0 means we use the mantissa as-is
-            return mantissa.into();
-        }
-
-        // Check if mantissa is valid (most significant byte has to be < 0x80)
-        // https://bitcoin.stackexchange.com/questions/113535/why-1d00ffff-and-not-1cffffff-as-target-in-genesis-block
         if mantissa > 0x7FFFFF {
             panic!("Target cannot have most significant bit set");
         };
 
-        // Calculate the full target value
-        if exponent <= 3 {
-            let shift = 8 * (3 - exponent);
-            // MAX_TARGET > 2^128 so we can return early
-            (mantissa.into() / pow2_u128(shift)).into()
-        } else if exponent <= 32 {
-            let shift = 8 * (exponent - 3);
-            let target = (mantissa.into() * pow2_u256(shift));
-            // Ensure the target doesn't exceed the maximum allowed value
-            if target > MAX_TARGET {
-                panic!("Target exceeds maximum value");
-            }
-            target
+        let target = match exponent {
+            0 => { return u256 { low: (mantissa / 0x1000000).into(), high: 0 }; },
+            1 => { return u256 { low: (mantissa / 0x10000).into(), high: 0 }; },
+            2 => { return u256 { low: (mantissa / 0x100).into(), high: 0 }; },
+            3 => { return u256 { low: mantissa.into(), high: 0 }; },
+            // because mantissa is on 3 bytes, if we shift by less than 2^(128-24), it's a low
+            4 => { return u256 { low: (mantissa.into() * 0x100), high: 0 }; },
+            5 => { return u256 { low: (mantissa.into() * 0x10000), high: 0 }; },
+            6 => { return u256 { low: (mantissa.into() * 0x1000000), high: 0 }; },
+            7 => { return u256 { low: (mantissa.into() * 0x100000000), high: 0 }; },
+            8 => { return u256 { low: (mantissa.into() * 0x10000000000), high: 0 }; },
+            9 => { return u256 { low: (mantissa.into() * 0x1000000000000), high: 0 }; },
+            10 => { return u256 { low: (mantissa.into() * 0x100000000000000), high: 0 }; },
+            11 => { return u256 { low: (mantissa.into() * 0x10000000000000000), high: 0 }; },
+            12 => { return u256 { low: (mantissa.into() * 0x1000000000000000000), high: 0 }; },
+            13 => { return u256 { low: (mantissa.into() * 0x100000000000000000000), high: 0 }; },
+            14 => { return u256 { low: (mantissa.into() * 0x10000000000000000000000), high: 0 }; },
+            15 => {
+                return u256 { low: (mantissa.into() * 0x1000000000000000000000000), high: 0 };
+            },
+            16 => {
+                return u256 { low: (mantissa.into() * 0x100000000000000000000000000), high: 0 };
+            },
+            // here we don't know
+            17 => { return mantissa.into() * 0x10000000000000000000000000000; },
+            18 => { return mantissa.into() * 0x1000000000000000000000000000000; },
+            19 => { return mantissa.into() * 0x100000000000000000000000000000000; },
+            // here it's only a high
+            20 => { return u256 { low: 0, high: mantissa.into() * 0x100 }; },
+            21 => { return u256 { low: 0, high: mantissa.into() * 0x10000 }; },
+            22 => { return u256 { low: 0, high: mantissa.into() * 0x1000000 }; },
+            23 => { return u256 { low: 0, high: mantissa.into() * 0x100000000 }; },
+            24 => { return u256 { low: 0, high: mantissa.into() * 0x10000000000 }; },
+            25 => { return u256 { low: 0, high: mantissa.into() * 0x1000000000000 }; },
+            26 => { return u256 { low: 0, high: mantissa.into() * 0x100000000000000 }; },
+            27 => { return u256 { low: 0, high: mantissa.into() * 0x10000000000000000 }; },
+            28 => { return u256 { low: 0, high: mantissa.into() * 0x1000000000000000000 }; },
+            // because 0x7FFFFF * 2**(8 * (28 - 3)) < MAX_TARGET, for these two elements we have to
+            // check the target
+            29 => u256 { low: 0, high: mantissa.into() * 0x100000000000000000000 },
+            30 => u256 { low: 0, high: mantissa.into() * 0x10000000000000000000000 },
+            // because 2^(8 * (31 - 3)) > MAX_TARGET
+            31 => { return panic!("Target exceeds maximum value"); },
+            32 => { return panic!("Target exceeds maximum value"); },
+            _ => { return panic!("Target size cannot exceed 32 bytes"); },
+        };
+
+        if target > MAX_TARGET {
+            panic!("Target exceeds maximum value")
         } else {
-            panic!("Target size cannot exceed 32 bytes")
+            target
         }
     }
 }

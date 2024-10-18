@@ -140,44 +140,14 @@ pub fn pow2_u128(exponent: u32) -> u128 {
     *results.span()[exponent]
 }
 
-/// Calculate 2 raised to the power of the given exponent
-/// using a pre-computed lookup table
-/// # Arguments
-/// * `exponent` - The exponent to raise 2 to
-/// # Returns
-/// * `u256` - The result of 2^exponent
-/// # Panics
-/// * If `exponent` is greater than 255 (out of the supported range)
-pub fn pow2_u256(exponent: u32) -> u256 {
-    if exponent < 128 {
-        pow2_u128(exponent).into()
-    } else {
-        u256 { low: 0, high: pow2_u128(exponent - 128), }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{pow2_u128, pow2_u256};
+    use super::pow2_u128;
 
     #[test]
     fn test_fast_pow2_u128() {
         assert(pow2_u128(0) == 1, '2^0 should be 1');
         assert(pow2_u128(18) == 262144, '2^18 should be 262144');
         assert(pow2_u128(127) == 170141183460469231731687303715884105728, '2^127 correct');
-    }
-
-    #[test]
-    #[available_gas(1000000000)]
-    fn test_fast_pow2_u256() {
-        assert(pow2_u256(0) == 1, '2^0 should be 1');
-        assert(pow2_u256(1) == 2, '2^1 should be 2');
-        assert(pow2_u256(128) == 340282366920938463463374607431768211456, '2^128 correct');
-        assert(
-            pow2_u256(
-                255
-            ) == 57896044618658097711785492504343953926634992332820282019728792003956564819968,
-            '2^255 correct'
-        );
     }
 }
