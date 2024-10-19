@@ -75,12 +75,12 @@ pub mod UtuRelay {
             // cancel if these existing blocks have a stronger cpow
             let new_block = self.blocks.read(end_block_hash);
             let mut new_cpow = new_block.pow;
+
             if new_cpow <= current_cpow {
                 panic!("Main chain has a stronger cpow than your proposed fork last block pow.");
             };
             self.chain.write(end_height, end_block_hash);
             let mut block_hash = new_block.prev_block_digest;
-
             // write blocks
             loop {
                 if begin_height == end_height {
@@ -112,6 +112,10 @@ pub mod UtuRelay {
 
         fn get_status(self: @ContractState, block_hash: Digest) -> BlockStatus {
             self.blocks.read(block_hash)
+        }
+
+        fn get_block(self: @ContractState, height: u64) -> Digest {
+            self.chain.read(height)
         }
     }
 }

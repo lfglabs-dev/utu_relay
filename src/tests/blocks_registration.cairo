@@ -43,7 +43,6 @@ fn test_single_block_registration() {
             prev_block_digest: hex_to_hash_rev(
                 "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
             ),
-            challenged_cpow: 0,
             pow: 4295032833,
         },
         'unexpected final status'
@@ -102,7 +101,6 @@ fn test_two_blocks_registration() {
             prev_block_digest: hex_to_hash_rev(
                 "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
             ),
-            challenged_cpow: 0,
             pow: 4295032833,
         },
         'unexpected status for block 170'
@@ -112,10 +110,7 @@ fn test_two_blocks_registration() {
     let status_171 = utu.get_status(block_171_hash);
     assert(
         status_171 == BlockStatus {
-            registration_timestamp: 1234567890,
-            prev_block_digest: block_170_hash,
-            challenged_cpow: 0,
-            pow: 4295032833,
+            registration_timestamp: 1234567890, prev_block_digest: block_170_hash, pow: 4295032833,
         },
         'unexpected status for block 171'
     );
@@ -175,7 +170,6 @@ fn test_same_height_registration() {
             prev_block_digest: hex_to_hash_rev(
                 "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
             ),
-            challenged_cpow: 0,
             pow: 395356030850084270690399,
         },
         'unexpected status for block 1'
@@ -189,7 +183,6 @@ fn test_same_height_registration() {
             prev_block_digest: hex_to_hash_rev(
                 "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
             ),
-            challenged_cpow: 0,
             pow: 395356030850084270690399,
         },
         'unexpected status for block 2'

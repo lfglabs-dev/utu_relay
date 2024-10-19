@@ -7,7 +7,6 @@ pub struct BlockStatus {
     // memory
     pub registration_timestamp: u64,
     pub prev_block_digest: Digest,
-    pub challenged_cpow: u128,
     pub pow: u128,
 }
 
@@ -19,12 +18,7 @@ pub impl BlockStatusImpl of BlockStatusTrait {
     }
 
     fn new(prev_block_digest: Digest, pow: u128) -> BlockStatus {
-        BlockStatus {
-            prev_block_digest,
-            registration_timestamp: get_block_timestamp(),
-            challenged_cpow: 0,
-            pow,
-        }
+        BlockStatus { prev_block_digest, registration_timestamp: get_block_timestamp(), pow, }
     }
 }
 
@@ -52,4 +46,6 @@ pub trait IUtuRelay<TContractState> {
     ) -> bool;
 
     fn get_status(self: @TContractState, block_hash: Digest) -> BlockStatus;
+
+    fn get_block(self: @TContractState, height: u64) -> Digest;
 }
