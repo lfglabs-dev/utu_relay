@@ -4,6 +4,7 @@ pub mod bitcoin {
     pub mod block;
 }
 pub mod utils {
+    pub mod coinbase;
     pub mod hex;
     pub mod hash;
     pub mod numeric;

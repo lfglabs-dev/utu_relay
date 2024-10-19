@@ -344,8 +344,8 @@ fn test_replacing_by_longer_but_weaker_chain() {
     // b) [ 0x1, 0x2b, 0x3b, 0x4]
     // where a[1:] cpow equals 1999 > 1500 for b[1:] even though b is longer
 
-    let block1_status = utu.get_status(block1_digest);
-    let loaded_status = load(
+    let _block1_status = utu.get_status(block1_digest);
+    let _loaded_status = load(
         utu.contract_address, map_entry_address(selector!("blocks"), block1_digest.into()), 10
     );
     // println!("block1_status: {:?}", block1_status);
