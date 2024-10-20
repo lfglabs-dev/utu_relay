@@ -4,7 +4,7 @@ use crate::{
     bitcoin::block::{BlockHeader, HumanReadableBlockHeader},
     tests::utils::{deploy_utu, BlockStatusIntoSpan, DigestIntoSpan},
 };
-use snforge_std::{start_cheat_block_timestamp, store, load, map_entry_address};
+use snforge_std::{start_cheat_block_timestamp, store};
 
 #[test]
 fn test_replacing_by_longer_chain() {
@@ -106,7 +106,7 @@ fn test_replacing_by_longer_chain() {
 
 
 #[test]
-#[should_panic(expected: "Main chain has a stronger cpow than your proposed fork last block pow.")]
+#[should_panic(expected: "Main chain has a stronger cumulated pow than your proposed fork.")]
 fn test_replacing_by_shorter_chain() {
     let utu = deploy_utu();
 
@@ -195,7 +195,7 @@ fn test_replacing_by_shorter_chain() {
 
 
 #[test]
-#[should_panic(expected: "Main chain has a stronger cpow than your proposed fork last block pow.")]
+#[should_panic(expected: "Main chain has a stronger cumulated pow than your proposed fork.")]
 fn test_replacing_by_equal_chain() {
     let utu = deploy_utu();
 
@@ -267,7 +267,7 @@ fn test_replacing_by_equal_chain() {
 }
 
 #[test]
-//#[should_panic(expected: "Main chain has a single block stronger than your proposed fork.")]
+#[should_panic(expected: "Main chain has a stronger cumulated pow than your proposed fork.")]
 fn test_replacing_by_longer_but_weaker_chain() {
     let utu = deploy_utu();
     // a random timestamp
@@ -304,52 +304,33 @@ fn test_replacing_by_longer_but_weaker_chain() {
     };
     let block4_digest: Digest = 0x4_u256.into();
 
-    store(
-        utu.contract_address,
-        map_entry_address(selector!("blocks"), block1_digest.into()),
-        block1.into()
-    );
+    // Should be found with `map_entry_address(selector!("blocks"), block1_digest.into())`
+    // but this didn't work, so I did manually within the contract with
+    // println!("address: {:?}", self.blocks.entry(block_hash).__storage_pointer_address__);
+    let block1_addr = 2189951415783994990461367959466671320294598733793400746396676636287532258831;
+    store(utu.contract_address, block1_addr, block1.into());
 
-    store(
-        utu.contract_address,
-        map_entry_address(selector!("blocks"), block2a_digest.into()),
-        block2a.into()
-    );
+    let block2a_addr = 3289193676692332009163594442186210748466471563237037789150715182729148770166;
+    store(utu.contract_address, block2a_addr, block2a.into());
 
-    store(
-        utu.contract_address,
-        map_entry_address(selector!("blocks"), block2b_digest.into()),
-        block2b.into()
-    );
+    let block2b_addr = 2079150206955353239541830956286259767666845602825783644632159528931587412106;
+    store(utu.contract_address, block2b_addr, block2b.into());
 
-    store(
-        utu.contract_address,
-        map_entry_address(selector!("blocks"), block3a_digest.into()),
-        block3a.into()
-    );
+    let block3a_addr = 805989071674148853474018426939299834836029346776739803160561792735929586608;
+    store(utu.contract_address, block3a_addr, block3a.into());
 
-    store(
-        utu.contract_address,
-        map_entry_address(selector!("blocks"), block3b_digest.into()),
-        block3b.into()
-    );
+    let block3b_addr = 969954659227798673151940791697718056313822851333955595349274609508811260981;
+    store(utu.contract_address, block3b_addr, block3b.into());
 
-    store(
-        utu.contract_address,
-        map_entry_address(selector!("blocks"), block4_digest.into()),
-        block4.into()
-    );
+    let block4_addr = 2010864322913263118584141126655135741893256527231830364300697997261717656594;
+    store(utu.contract_address, block4_addr, block4.into());
     // we now have 2 chains:
-    // a) [ 0x1, 0x2a, 0x3a ]
-    // b) [ 0x1, 0x2b, 0x3b, 0x4]
+    // todo: find algorithm
+    // a) [ 0x1, 0x2a, 0x3a ], 1000, 1000, 999
+    // b) [ 0x1, 0x2b, 0x3b, 0x4], 1000, 500, 500, 500
     // where a[1:] cpow equals 1999 > 1500 for b[1:] even though b is longer
 
-    let _block1_status = utu.get_status(block1_digest);
-    let _loaded_status = load(
-        utu.contract_address, map_entry_address(selector!("blocks"), block1_digest.into()), 10
-    );
-    // println!("block1_status: {:?}", block1_status);
-// println!("loaded_status: {:?}", loaded_status);
-//utu.set_main_chain(1, 3, block2a_digest);
-//utu.set_main_chain(1, 4, block2b_digest);
+    utu.set_main_chain(1, 3, block3a_digest);
+    utu.set_main_chain(1, 4, block4_digest);
 }
+

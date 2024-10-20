@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod UtuRelay {
-    use starknet::storage::StorageMapWriteAccess;
+    use starknet::storage::{StorageMapWriteAccess};
     use crate::{
         utils::hash::Digest,
         bitcoin::block::{
@@ -56,49 +56,34 @@ pub mod UtuRelay {
 
         fn set_main_chain(
             ref self: ContractState, begin_height: u64, mut end_height: u64, end_block_hash: Digest
-        ) { // override existing blocks starting at `end_height`
-            let mut current_cpow: u128 = 0;
-            let mut block_i = end_height;
+        ) {
+            // This helper will write the ancestry of end_block_hash over [begin_height, end_height]
+            // with chain[end_height] holding end_block_hash. If it overwrote some blocks, it
+            // returns the cumulated pow of the overwritten blocks (current) and the fork (new).
+            let (mut current_cpow, new_cpow) = self
+                .set_main_chain_helper(end_block_hash, end_height, begin_height - 1);
+
+            // if there was no conflict
+            if current_cpow == 0 {
+                return;
+            }
+
+            // otherwise, we want to account for the current_cpow by blocks > to end_height
+            let mut next_block_i = end_height + 1;
             loop {
-                let block_digest = self.chain.read(block_i);
-                if block_digest == Zero::zero() {
+                let next_block_digest = self.chain.read(next_block_i);
+                if next_block_digest == Zero::zero() {
                     break;
                 }
-                let block_entry = self.blocks.entry(block_digest);
-                let block = block_entry.read();
-                // we erase the block, this will get reverted if pow is not sufficient
-                block_entry.write(Default::default());
-                current_cpow += block.pow;
-                block_i += 1;
+
+                current_cpow += self.blocks.read(next_block_digest).pow;
+                next_block_i += 1;
             };
 
-            // cancel if these existing blocks have a stronger cpow
-            let new_block = self.blocks.read(end_block_hash);
-            let mut new_cpow = new_block.pow;
-
-            if new_cpow <= current_cpow {
-                panic!("Main chain has a stronger cpow than your proposed fork last block pow.");
-            };
-            self.chain.write(end_height, end_block_hash);
-            let mut block_hash = new_block.prev_block_digest;
-            // write blocks
-            loop {
-                if begin_height == end_height {
-                    break;
-                };
-                let block = self.blocks.read(block_hash);
-                new_cpow += block.pow;
-                end_height -= 1;
-
-                // check if there is an existing block
-                let block_hash_entry = self.chain.entry(end_height);
-                // if there is no existing block, its pow will be 0
-                if new_cpow <= self.blocks.read(block_hash_entry.read()).pow {
-                    panic!("Main chain has a single block stronger than your proposed fork.");
-                };
-                block_hash_entry.write(block_hash);
-                block_hash = block.prev_block_digest;
-            };
+            // and automatically revert everything if the fork cpow is weaker
+            if current_cpow >= new_cpow {
+                panic!("Main chain has a stronger cumulated pow than your proposed fork.");
+            }
         }
 
 
@@ -116,6 +101,37 @@ pub mod UtuRelay {
 
         fn get_block(self: @ContractState, height: u64) -> Digest {
             self.chain.read(height)
+        }
+    }
+
+    #[generate_trait]
+    pub impl InternalImpl of InternalTrait {
+        fn set_main_chain_helper(
+            ref self: ContractState, new_block_digest: Digest, block_index: u64, stop_index: u64,
+        ) -> (u128, u128) {
+            if block_index == stop_index {
+                return (0, 0);
+            }
+
+            // update the block stored in the chain
+            let block_digest_entry = self.chain.entry(block_index);
+            let current_block_digest = block_digest_entry.read();
+            block_digest_entry.write(new_block_digest);
+
+            // retrieve the blocks
+            let current_block = self.blocks.read(current_block_digest);
+            let new_block = self.blocks.read(new_block_digest);
+
+            let (cpow, new_cpow) = self
+                .set_main_chain_helper(new_block.prev_block_digest, block_index - 1, stop_index);
+
+            // if there was no conflict before
+            if current_block_digest == new_block_digest {
+                return (0, 0);
+                // if there was a conflict (may be), we measure cpow & new_cpow
+            } else {
+                return (cpow + current_block.pow, new_cpow + new_block.pow);
+            }
         }
     }
 }
