@@ -63,22 +63,30 @@ pub mod UtuRelay {
             let (mut current_cpow, new_cpow) = self
                 .set_main_chain_helper(end_block_hash, end_height, begin_height - 1);
 
-            // if there was no conflict
-            if current_cpow == 0 {
-                return;
-            }
-
-            // otherwise, we want to account for the current_cpow by blocks > to end_height
             let mut next_block_i = end_height + 1;
-            loop {
-                let next_block_digest = self.chain.read(next_block_i);
-                if next_block_digest == Zero::zero() {
-                    break;
-                }
+            let mut next_chain_entry = self.chain.entry(next_block_i);
+            let mut next_block_digest = next_chain_entry.read();
+            let mut next_block = self.blocks.read(next_block_digest);
+            // if there is a conflict with next blocks
+            if next_block.prev_block_digest != end_block_hash {
+                // we want to account for the current_cpow by blocks > to end_height
+                loop {
+                    if next_block_digest == Zero::zero() {
+                        break;
+                    }
 
-                current_cpow += self.blocks.read(next_block_digest).pow;
-                next_block_i += 1;
-            };
+                    // we remove the conflicting blocks from the canonical chain
+                    // but this will be cancelled by the panic if we are wrong
+                    next_chain_entry.write(Zero::zero());
+
+                    // we increase the current_cpow
+                    current_cpow += next_block.pow;
+                    next_block_i += 1;
+                    next_chain_entry = self.chain.entry(next_block_i);
+                    next_block_digest = next_chain_entry.read();
+                    next_block = self.blocks.read(next_block_digest)
+                };
+            }
 
             // and automatically revert everything if the fork cpow is weaker
             if current_cpow >= new_cpow {
@@ -109,18 +117,33 @@ pub mod UtuRelay {
         fn set_main_chain_helper(
             ref self: ContractState, new_block_digest: Digest, block_index: u64, stop_index: u64,
         ) -> (u128, u128) {
-            if block_index == stop_index {
-                return (0, 0);
-            }
-
-            // update the block stored in the chain
+            // fetch the block stored in the chain
             let block_digest_entry = self.chain.entry(block_index);
             let current_block_digest = block_digest_entry.read();
-            block_digest_entry.write(new_block_digest);
+
+            // Ensure consistency with previous blocks
+            // This check prevents setting inconsistent values without comparing PoW
+            // If there's a conflict with a more recent block, provide replacement blocks
+            // The function will panic if inconsistency is detected to save gas
+            // For honest users, simply provide the correct replacement blocks
+            if block_index == stop_index {
+                // new_block_digest is previous_block_digest of his son we just processed
+                if current_block_digest != Zero::zero()
+                    && current_block_digest != new_block_digest {
+                    panic!(
+                        "Main chain block preceding your proposed fork is inconsistent. Please provide a stronger replacement."
+                    );
+                };
+
+                return (0, 0);
+            }
 
             // retrieve the blocks
             let current_block = self.blocks.read(current_block_digest);
             let new_block = self.blocks.read(new_block_digest);
+
+            // replace the block stored in the chain
+            block_digest_entry.write(new_block_digest);
 
             let (cpow, new_cpow) = self
                 .set_main_chain_helper(new_block.prev_block_digest, block_index - 1, stop_index);
