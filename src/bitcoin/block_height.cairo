@@ -31,25 +31,20 @@ pub fn get_block_height(
 #[cfg(test)]
 mod tests {
     use super::get_block_height;
-    use crate::bitcoin::block::{BlockHeader, HumanReadableBlockHeader};
+    use crate::bitcoin::block::BlockHeaderTrait;
     use crate::utils::hex::{from_hex, hex_to_hash_rev};
 
     #[test]
     fn test_get_block_height() {
         // Updated Block header data for block 227_836
-        let human_readable_header = HumanReadableBlockHeader {
-            version: 2,
-            prev_block_hash: hex_to_hash_rev(
-                "00000000000001aa077d7aa84c532a4d69bdbff519609d1da0835261b7a74eb6"
-            ),
-            merkle_root_hash: hex_to_hash_rev(
-                "38a2518423d8ea76e716d1dc86d742b9e7f3febda7bf9a3e18bcd6c8ad55ff45"
-            ),
-            time: 1364140204,
-            bits: 0x1a02816e,
-            nonce: 30275792,
-        };
-        let header: BlockHeader = human_readable_header.into();
+        let header = BlockHeaderTrait::new(
+            2,
+            hex_to_hash_rev("00000000000001aa077d7aa84c532a4d69bdbff519609d1da0835261b7a74eb6"),
+            hex_to_hash_rev("38a2518423d8ea76e716d1dc86d742b9e7f3febda7bf9a3e18bcd6c8ad55ff45"),
+            1364140204,
+            0x1a02816e,
+            30275792,
+        );
 
         // Coinbase transaction raw data (same as in the coinbase test)
         let coinbase_tx_raw_data = from_hex(

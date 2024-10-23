@@ -1,7 +1,7 @@
 use super::super::interfaces::IUtuRelayDispatcherTrait;
 use crate::{
     interfaces::BlockStatus, utils::{hex::hex_to_hash_rev, hash::Digest},
-    bitcoin::block::{BlockHeader, HumanReadableBlockHeader},
+    bitcoin::block::{BlockHeader, BlockHeaderTrait},
     tests::utils::{deploy_utu, BlockStatusIntoSpan, DigestIntoSpan},
 };
 use snforge_std::{start_cheat_block_timestamp, store};
@@ -16,73 +16,53 @@ fn test_replacing_by_longer_chain() {
     let block_865_698_hash = hex_to_hash_rev(
         "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
     );
-    let block_865_698: BlockHeader = HumanReadableBlockHeader {
-        version: 582_238_208_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "0000000000000000000135e8b5214c6de06ad988280816ce0daa1d92317c4904"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "219394ee994ef9dda390b34d6ef8d7fb3e24a05b2c29f02c1d7839aa6c154787"
-        ),
-        time: 1_728_969_360_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_876_725_546,
-    }
-        .into();
+    let block_865_698: BlockHeader = BlockHeaderTrait::new(
+        582_238_208_u32,
+        hex_to_hash_rev("0000000000000000000135e8b5214c6de06ad988280816ce0daa1d92317c4904"),
+        hex_to_hash_rev("219394ee994ef9dda390b34d6ef8d7fb3e24a05b2c29f02c1d7839aa6c154787"),
+        1_728_969_360_u32,
+        0x17030ecd_u32,
+        3_876_725_546,
+    );
 
     // Block 865_699 (first version)
     let block_865_699_hash_1 = hex_to_hash_rev(
         "00000000000000000002648ba35429c4e46e38d5261331bbddd7244baf94d515"
     );
-    let block_865_699_1: BlockHeader = HumanReadableBlockHeader {
-        version: 632_832_000_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"
-        ),
-        time: 1_728_969_824_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 2_662_381_191,
-    }
-        .into();
+    let block_865_699_1: BlockHeader = BlockHeaderTrait::new(
+        632_832_000_u32,
+        hex_to_hash_rev("000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"),
+        hex_to_hash_rev("c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"),
+        1_728_969_824_u32,
+        0x17030ecd_u32,
+        2_662_381_191,
+    );
 
     // Block 865_699 (second version, canonical chain)
     let block_865_699_hash_2 = hex_to_hash_rev(
         "00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"
     );
-    let block_865_699_2: BlockHeader = HumanReadableBlockHeader {
-        version: 905_969_664_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"
-        ),
-        time: 1_728_969_853_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_760_750_539,
-    }
-        .into();
+    let block_865_699_2: BlockHeader = BlockHeaderTrait::new(
+        905_969_664_u32,
+        hex_to_hash_rev("000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"),
+        hex_to_hash_rev("92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"),
+        1_728_969_853_u32,
+        0x17030ecd_u32,
+        3_760_750_539,
+    );
 
     // Block 865_700 (canonical chain)
     let block_865_700_hash = hex_to_hash_rev(
         "00000000000000000002a82a6dee77c45ecd5a072a6ad9fe31d818ff62f0d16b"
     );
-    let block_865_700: BlockHeader = HumanReadableBlockHeader {
-        version: 873_521_152_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "2c5b149489af4585aefd2e8954de51ea461e2ebfb0b15ecf88aa1e94d276c997"
-        ),
-        time: 1_728_970_451_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_606_011_432,
-    }
-        .into();
+    let block_865_700: BlockHeader = BlockHeaderTrait::new(
+        873_521_152_u32,
+        hex_to_hash_rev("00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"),
+        hex_to_hash_rev("2c5b149489af4585aefd2e8954de51ea461e2ebfb0b15ecf88aa1e94d276c997"),
+        1_728_970_451_u32,
+        0x17030ecd_u32,
+        3_606_011_432,
+    );
 
     // Register all blocks
     let block_headers: Array<BlockHeader> = array![
@@ -113,70 +93,50 @@ fn test_replacing_by_shorter_chain() {
     start_cheat_block_timestamp(utu.contract_address, 1_728_969_360);
 
     // Block 865_698
-    let block_865_698: BlockHeader = HumanReadableBlockHeader {
-        version: 582_238_208_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "0000000000000000000135e8b5214c6de06ad988280816ce0daa1d92317c4904"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "219394ee994ef9dda390b34d6ef8d7fb3e24a05b2c29f02c1d7839aa6c154787"
-        ),
-        time: 1_728_969_360_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_876_725_546,
-    }
-        .into();
+    let block_865_698: BlockHeader = BlockHeaderTrait::new(
+        582_238_208_u32,
+        hex_to_hash_rev("0000000000000000000135e8b5214c6de06ad988280816ce0daa1d92317c4904"),
+        hex_to_hash_rev("219394ee994ef9dda390b34d6ef8d7fb3e24a05b2c29f02c1d7839aa6c154787"),
+        1_728_969_360_u32,
+        0x17030ecd_u32,
+        3_876_725_546,
+    );
 
     // Block 865_699 (first version)
     let block_865_699_hash_1 = hex_to_hash_rev(
         "00000000000000000002648ba35429c4e46e38d5261331bbddd7244baf94d515"
     );
-    let block_865_699_1: BlockHeader = HumanReadableBlockHeader {
-        version: 632_832_000_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"
-        ),
-        time: 1_728_969_824_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 2_662_381_191,
-    }
-        .into();
+    let block_865_699_1: BlockHeader = BlockHeaderTrait::new(
+        632_832_000_u32,
+        hex_to_hash_rev("000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"),
+        hex_to_hash_rev("c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"),
+        1_728_969_824_u32,
+        0x17030ecd_u32,
+        2_662_381_191,
+    );
 
     // Block 865_699 (second version, canonical chain)
-    let block_865_699_2: BlockHeader = HumanReadableBlockHeader {
-        version: 905_969_664_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"
-        ),
-        time: 1_728_969_853_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_760_750_539,
-    }
-        .into();
+    let block_865_699_2: BlockHeader = BlockHeaderTrait::new(
+        905_969_664_u32,
+        hex_to_hash_rev("000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"),
+        hex_to_hash_rev("92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"),
+        1_728_969_853_u32,
+        0x17030ecd_u32,
+        3_760_750_539,
+    );
 
     // Block 865_700 (canonical chain)
     let block_865_700_hash = hex_to_hash_rev(
         "00000000000000000002a82a6dee77c45ecd5a072a6ad9fe31d818ff62f0d16b"
     );
-    let block_865_700: BlockHeader = HumanReadableBlockHeader {
-        version: 873_521_152_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "2c5b149489af4585aefd2e8954de51ea461e2ebfb0b15ecf88aa1e94d276c997"
-        ),
-        time: 1_728_970_451_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_606_011_432,
-    }
-        .into();
+    let block_865_700: BlockHeader = BlockHeaderTrait::new(
+        873_521_152_u32,
+        hex_to_hash_rev("00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"),
+        hex_to_hash_rev("2c5b149489af4585aefd2e8954de51ea461e2ebfb0b15ecf88aa1e94d276c997"),
+        1_728_970_451_u32,
+        0x17030ecd_u32,
+        3_606_011_432,
+    );
 
     // Register all blocks
     let block_headers: Array<BlockHeader> = array![
@@ -202,55 +162,40 @@ fn test_replacing_by_equal_chain() {
     start_cheat_block_timestamp(utu.contract_address, 1_728_969_360);
 
     // Block 865_698
-    let block_865_698: BlockHeader = HumanReadableBlockHeader {
-        version: 582_238_208_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "0000000000000000000135e8b5214c6de06ad988280816ce0daa1d92317c4904"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "219394ee994ef9dda390b34d6ef8d7fb3e24a05b2c29f02c1d7839aa6c154787"
-        ),
-        time: 1_728_969_360_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_876_725_546,
-    }
-        .into();
+    let block_865_698: BlockHeader = BlockHeaderTrait::new(
+        582_238_208_u32,
+        hex_to_hash_rev("0000000000000000000135e8b5214c6de06ad988280816ce0daa1d92317c4904"),
+        hex_to_hash_rev("219394ee994ef9dda390b34d6ef8d7fb3e24a05b2c29f02c1d7839aa6c154787"),
+        1_728_969_360_u32,
+        0x17030ecd_u32,
+        3_876_725_546,
+    );
 
     // Block 865_699 (first version)
     let block_865_699_hash_1 = hex_to_hash_rev(
         "00000000000000000002648ba35429c4e46e38d5261331bbddd7244baf94d515"
     );
-    let block_865_699_1: BlockHeader = HumanReadableBlockHeader {
-        version: 632_832_000_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"
-        ),
-        time: 1_728_969_824_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 2_662_381_191,
-    }
-        .into();
+    let block_865_699_1: BlockHeader = BlockHeaderTrait::new(
+        632_832_000_u32,
+        hex_to_hash_rev("000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"),
+        hex_to_hash_rev("c491a795a7e3e7286426c15a623e03a80f31cf75fca08b31eb6a325cfe17b5e2"),
+        1_728_969_824_u32,
+        0x17030ecd_u32,
+        2_662_381_191,
+    );
 
     // Block 865_699 (second version, canonical chain)
     let block_865_699_hash_2 = hex_to_hash_rev(
         "00000000000000000000e7a78ccc708a62c6e04e8a4b5ef3bf4abd7a4c1b5b10"
     );
-    let block_865_699_2: BlockHeader = HumanReadableBlockHeader {
-        version: 905_969_664_u32,
-        prev_block_hash: hex_to_hash_rev(
-            "000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"
-        ),
-        merkle_root_hash: hex_to_hash_rev(
-            "92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"
-        ),
-        time: 1_728_969_853_u32,
-        bits: 0x17030ecd_u32,
-        nonce: 3_760_750_539,
-    }
-        .into();
+    let block_865_699_2: BlockHeader = BlockHeaderTrait::new(
+        905_969_664_u32,
+        hex_to_hash_rev("000000000000000000012bc4e973e18e17b9980ba5b6fe545a5f05e0e222828c"),
+        hex_to_hash_rev("92888eb107c908635e5b5061ed2ac76744ba875661cfb1b77fe39f4c8dc60b11"),
+        1_728_969_853_u32,
+        0x17030ecd_u32,
+        3_760_750_539,
+    );
 
     // Register all blocks
     let block_headers: Array<BlockHeader> = array![block_865_698, block_865_699_1, block_865_699_2];

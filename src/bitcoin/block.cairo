@@ -26,33 +26,25 @@ pub struct BlockHeader {
     pub nonce: u32,
 }
 
-/// HumanReadableBlockHeader is provided for testing purposes.
-/// In Cairo, the default encoding is big-endian, so this struct allows
-/// creation of a BlockHeader from human-readable values.
-/// Note: The Digest fields are already in little-endian format.
-// todo: BlockHeader with HumanReadable constructor and default one?
-#[derive(Drop, Copy, Debug, PartialEq, Default, Serde)]
-pub struct HumanReadableBlockHeader {
-    pub version: u32,
-    pub prev_block_hash: Digest,
-    pub merkle_root_hash: Digest,
-    pub time: u32,
-    pub bits: u32,
-    pub nonce: u32,
-}
-
-// todo: Precompiled Block Header?
-impl IntoBlockHeader of Into<HumanReadableBlockHeader, BlockHeader> {
-    fn into(self: HumanReadableBlockHeader) -> BlockHeader {
+#[generate_trait]
+pub impl BlockHeaderImpl of BlockHeaderTrait {
+    /// Constructor for BlockHeader that takes human-readable values
+    /// and converts them to the internal little-endian representation.
+    fn new(
+        version: u32,
+        prev_block_hash: Digest,
+        merkle_root_hash: Digest,
+        time: u32,
+        bits: u32,
+        nonce: u32
+    ) -> BlockHeader {
         BlockHeader {
-            version: u32_byte_reverse(self.version),
-            prev_block_hash: self.prev_block_hash,
-            merkle_root_hash: self.merkle_root_hash,
-            time: u32_byte_reverse(self.time),
-            // we want to keep bits in little endian to allow for pow computation
-            // todo: split mantissa and precompute reversed?
-            bits: self.bits,
-            nonce: u32_byte_reverse(self.nonce),
+            version: u32_byte_reverse(version),
+            prev_block_hash,
+            merkle_root_hash,
+            time: u32_byte_reverse(time),
+            bits,
+            nonce: u32_byte_reverse(nonce),
         }
     }
 }
@@ -94,52 +86,49 @@ pub impl PowVerificationImpl of PowVerificationTrait {
     /// todo: optimize for errors and maths
     fn compute_target_threshold(self: @BlockHeader) -> u256 {
         let (exponent, mantissa) = DivRem::div_rem(*self.bits, 0x1000000);
+        let mantissa: u128 = mantissa.into();
 
         if mantissa > 0x7FFFFF {
             panic!("Target cannot have most significant bit set");
         };
 
         let target = match exponent {
-            0 => { return u256 { low: (mantissa / 0x1000000).into(), high: 0 }; },
-            1 => { return u256 { low: (mantissa / 0x10000).into(), high: 0 }; },
-            2 => { return u256 { low: (mantissa / 0x100).into(), high: 0 }; },
-            3 => { return u256 { low: mantissa.into(), high: 0 }; },
+            0 => { return u256 { low: (mantissa / 0x1000000), high: 0 }; },
+            1 => { return u256 { low: (mantissa / 0x10000), high: 0 }; },
+            2 => { return u256 { low: (mantissa / 0x100), high: 0 }; },
+            3 => { return u256 { low: mantissa, high: 0 }; },
             // because mantissa is on 3 bytes, if we shift by less than 2^(128-24), it's a low
-            4 => { return u256 { low: (mantissa.into() * 0x100), high: 0 }; },
-            5 => { return u256 { low: (mantissa.into() * 0x10000), high: 0 }; },
-            6 => { return u256 { low: (mantissa.into() * 0x1000000), high: 0 }; },
-            7 => { return u256 { low: (mantissa.into() * 0x100000000), high: 0 }; },
-            8 => { return u256 { low: (mantissa.into() * 0x10000000000), high: 0 }; },
-            9 => { return u256 { low: (mantissa.into() * 0x1000000000000), high: 0 }; },
-            10 => { return u256 { low: (mantissa.into() * 0x100000000000000), high: 0 }; },
-            11 => { return u256 { low: (mantissa.into() * 0x10000000000000000), high: 0 }; },
-            12 => { return u256 { low: (mantissa.into() * 0x1000000000000000000), high: 0 }; },
-            13 => { return u256 { low: (mantissa.into() * 0x100000000000000000000), high: 0 }; },
-            14 => { return u256 { low: (mantissa.into() * 0x10000000000000000000000), high: 0 }; },
-            15 => {
-                return u256 { low: (mantissa.into() * 0x1000000000000000000000000), high: 0 };
-            },
-            16 => {
-                return u256 { low: (mantissa.into() * 0x100000000000000000000000000), high: 0 };
-            },
+            4 => { return u256 { low: (mantissa * 0x100), high: 0 }; },
+            5 => { return u256 { low: (mantissa * 0x10000), high: 0 }; },
+            6 => { return u256 { low: (mantissa * 0x1000000), high: 0 }; },
+            7 => { return u256 { low: (mantissa * 0x100000000), high: 0 }; },
+            8 => { return u256 { low: (mantissa * 0x10000000000), high: 0 }; },
+            9 => { return u256 { low: (mantissa * 0x1000000000000), high: 0 }; },
+            10 => { return u256 { low: (mantissa * 0x100000000000000), high: 0 }; },
+            11 => { return u256 { low: (mantissa * 0x10000000000000000), high: 0 }; },
+            12 => { return u256 { low: (mantissa * 0x1000000000000000000), high: 0 }; },
+            13 => { return u256 { low: (mantissa * 0x100000000000000000000), high: 0 }; },
+            14 => { return u256 { low: (mantissa * 0x10000000000000000000000), high: 0 }; },
+            15 => { return u256 { low: (mantissa * 0x1000000000000000000000000), high: 0 }; },
+            16 => { return u256 { low: (mantissa * 0x100000000000000000000000000), high: 0 }; },
             // here we don't know
             17 => { return mantissa.into() * 0x10000000000000000000000000000; },
             18 => { return mantissa.into() * 0x1000000000000000000000000000000; },
             19 => { return mantissa.into() * 0x100000000000000000000000000000000; },
             // here it's only a high
-            20 => { return u256 { low: 0, high: mantissa.into() * 0x100 }; },
-            21 => { return u256 { low: 0, high: mantissa.into() * 0x10000 }; },
-            22 => { return u256 { low: 0, high: mantissa.into() * 0x1000000 }; },
-            23 => { return u256 { low: 0, high: mantissa.into() * 0x100000000 }; },
-            24 => { return u256 { low: 0, high: mantissa.into() * 0x10000000000 }; },
-            25 => { return u256 { low: 0, high: mantissa.into() * 0x1000000000000 }; },
-            26 => { return u256 { low: 0, high: mantissa.into() * 0x100000000000000 }; },
-            27 => { return u256 { low: 0, high: mantissa.into() * 0x10000000000000000 }; },
-            28 => { return u256 { low: 0, high: mantissa.into() * 0x1000000000000000000 }; },
+            20 => { return u256 { low: 0, high: mantissa * 0x100 }; },
+            21 => { return u256 { low: 0, high: mantissa * 0x10000 }; },
+            22 => { return u256 { low: 0, high: mantissa * 0x1000000 }; },
+            23 => { return u256 { low: 0, high: mantissa * 0x100000000 }; },
+            24 => { return u256 { low: 0, high: mantissa * 0x10000000000 }; },
+            25 => { return u256 { low: 0, high: mantissa * 0x1000000000000 }; },
+            26 => { return u256 { low: 0, high: mantissa * 0x100000000000000 }; },
+            27 => { return u256 { low: 0, high: mantissa * 0x10000000000000000 }; },
+            28 => { return u256 { low: 0, high: mantissa * 0x1000000000000000000 }; },
             // because 0x7FFFFF * 2**(8 * (28 - 3)) < MAX_TARGET, for these two elements we have to
             // check the target
-            29 => u256 { low: 0, high: mantissa.into() * 0x100000000000000000000 },
-            30 => u256 { low: 0, high: mantissa.into() * 0x10000000000000000000000 },
+            29 => u256 { low: 0, high: mantissa * 0x100000000000000000000 },
+            30 => u256 { low: 0, high: mantissa * 0x10000000000000000000000 },
             // because 2^(8 * (31 - 3)) > MAX_TARGET
             31 => { return panic!("Target exceeds maximum value"); },
             32 => { return panic!("Target exceeds maximum value"); },
@@ -166,8 +155,7 @@ pub fn compute_pow_from_target(target: u256) -> u128 {
 #[cfg(test)]
 mod tests {
     use super::{
-        BlockHeader, HumanReadableBlockHeader, BlockHashTrait, PowVerificationTrait,
-        compute_pow_from_target
+        BlockHeader, BlockHeaderTrait, BlockHashTrait, PowVerificationTrait, compute_pow_from_target
     };
     use crate::utils::hex::hex_to_hash_rev;
 
@@ -175,22 +163,15 @@ mod tests {
 
     #[test]
     fn test_block_hash() {
-        // Create a HumanReadablBlockHeader from block 170
-        let human_readable_header = HumanReadableBlockHeader {
-            version: 1_u32,
-            prev_block_hash: hex_to_hash_rev(
-                "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
-            ),
-            merkle_root_hash: hex_to_hash_rev(
-                "7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"
-            ),
-            time: 1231731025_u32,
-            bits: 0x1d00ffff_u32,
-            nonce: 1889418792,
-        };
-
-        // Convert to full little endian BlockHeader
-        let header: BlockHeader = human_readable_header.into();
+        // Create a BlockHeader using the new constructor
+        let header = BlockHeaderTrait::new(
+            1_u32,
+            hex_to_hash_rev("000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"),
+            hex_to_hash_rev("7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"),
+            1231731025_u32,
+            0x1d00ffff_u32,
+            1889418792,
+        );
 
         // Compute the hash
         let computed_hash = header.hash();
@@ -209,20 +190,15 @@ mod tests {
     #[test]
     fn test_pow() {
         // Block 170
-        let human_readable_header = HumanReadableBlockHeader {
-            version: 1_u32,
-            prev_block_hash: hex_to_hash_rev(
-                "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
-            ),
-            merkle_root_hash: hex_to_hash_rev(
-                "7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"
-            ),
-            time: 1231731025_u32,
-            bits: 0x1d00ffff_u32,
-            nonce: 1889418792,
-        };
+        let header = BlockHeaderTrait::new(
+            1_u32,
+            hex_to_hash_rev("000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"),
+            hex_to_hash_rev("7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"),
+            1231731025_u32,
+            0x1d00ffff_u32,
+            1889418792,
+        );
 
-        let header: BlockHeader = human_readable_header.into();
         let pow = header.compute_pow();
         // This is an estimation of the amount of hashes to compute a valid block hash
         assert(pow == 4_295_032_833, 'Incorrect PoW computation');
@@ -232,20 +208,15 @@ mod tests {
     #[test]
     fn test_pow_from_target() {
         // Block 170
-        let human_readable_header = HumanReadableBlockHeader {
-            version: 1_u32,
-            prev_block_hash: hex_to_hash_rev(
-                "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
-            ),
-            merkle_root_hash: hex_to_hash_rev(
-                "7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"
-            ),
-            time: 1231731025_u32,
-            bits: 0x1d00ffff_u32,
-            nonce: 1889418792,
-        };
+        let header = BlockHeaderTrait::new(
+            1_u32,
+            hex_to_hash_rev("000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"),
+            hex_to_hash_rev("7dac2c5666815c17a3b36427de37bb9d2e2c5ccec3f8633eb91a4205cb4c10ff"),
+            1231731025_u32,
+            0x1d00ffff_u32,
+            1889418792,
+        );
 
-        let header: BlockHeader = human_readable_header.into();
         let target = header.compute_target_threshold();
         let pow = compute_pow_from_target(target);
         // This is an estimation of the amount of hashes to compute a valid block hash
