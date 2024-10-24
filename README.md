@@ -26,23 +26,28 @@ Key features:
 
 Register a list of Bitcoin block headers. Blocks don't need to be contiguous or in order.
 
-### set_main_chain(begin_height: u64, end_height: u64, end_block_hash: Digest)
+### update_canonical_chain(begin_height: u64, end_height: u64, end_block_hash: Digest, height_proof: Option<(ByteArray, Span<Digest>)>)
 
-Set the official main chain for a given interval [begin_height, end_height). Verifies that the end block hash and all its parents are registered.
+Set the official canonical chain for a given interval [begin_height, end_height). Verifies that the end block hash and all its parents are registered. The `height_proof` parameter is optional and is used to verify the block height when the chain at `begin-1` is not set.
 
 ### challenge_block(block_height: u64, blocks: Array<BlockHeader>) → bool
 
 Challenge and potentially update a registered block, with an incentive mechanism for successful updates.
+To be implemented.
 
-### get_status(block_height: u64) → Option<BlockStatus>
+### get_status(block_hash: Digest) → BlockStatus
 
-Retrieve information about a block at the given height, including its status and other relevant data.
+Retrieve information about a block using its hash, including its status and other relevant data.
+
+### get_block(height: u64) → Digest
+
+Retrieve the block hash for a given block height.
 
 ## Usage Example
 
 Here's a simplified example of how to securely verify a Bitcoin transaction:
 
-1. Ensure the block containing the transaction is part of the main chain using `set_main_chain`.
+1. Ensure the block containing the transaction is part of the main chain using `update_canonical_chain`.
 2. Verify the block's status using `get_status` to check if it's unchallenged and has been registered for a sufficient time.
 3. Adjust verification requirements based on the specific security needs of your application.
 

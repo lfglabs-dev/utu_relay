@@ -71,12 +71,12 @@ fn test_replacing_by_longer_chain() {
     utu.register_blocks(block_headers.span());
 
     // this should set the chain to an orphan block
-    utu.set_main_chain(865_698, 865_699, block_865_699_hash_1);
+    utu.update_canonical_chain(865_698, 865_699, block_865_699_hash_1, Option::None);
     let orphan_digest = utu.get_block(865_699);
     assert(orphan_digest == block_865_699_hash_1, 'wrong orphan digest');
 
     // then this should correct it because the canonical chain is stronger
-    utu.set_main_chain(865_698, 865_700, block_865_700_hash);
+    utu.update_canonical_chain(865_698, 865_700, block_865_700_hash, Option::None);
     let updated_block_digest = utu.get_block(865_699);
     assert(updated_block_digest == block_865_699_hash_2, 'wrong replaced digest');
 
@@ -145,10 +145,10 @@ fn test_replacing_by_shorter_chain() {
     utu.register_blocks(block_headers.span());
 
     // we set the main chain to the stronger canonical chain
-    utu.set_main_chain(865_698, 865_700, block_865_700_hash);
+    utu.update_canonical_chain(865_698, 865_700, block_865_700_hash, Option::None);
 
     // then we try to update to an orphan block
-    utu.set_main_chain(865_698, 865_699, block_865_699_hash_1);
+    utu.update_canonical_chain(865_698, 865_699, block_865_699_hash_1, Option::None);
     let orphan_digest = utu.get_block(865_699);
     assert(orphan_digest == block_865_699_hash_1, 'wrong orphan digest');
 }
@@ -202,11 +202,11 @@ fn test_replacing_by_equal_chain() {
     utu.register_blocks(block_headers.span());
 
     // we set the main chain to the canonical chain
-    utu.set_main_chain(865_698, 865_700, block_865_699_hash_2);
+    utu.update_canonical_chain(865_698, 865_700, block_865_699_hash_2, Option::None);
 
     // then we try to update to an orphan block (should be refused so that you can't update back and
     // forth)
-    utu.set_main_chain(865_698, 865_699, block_865_699_hash_1);
+    utu.update_canonical_chain(865_698, 865_699, block_865_699_hash_1, Option::None);
     let orphan_digest = utu.get_block(865_699);
     assert(orphan_digest == block_865_699_hash_1, 'wrong orphan digest');
 }
@@ -275,7 +275,6 @@ fn test_replacing_by_longer_but_weaker_chain() {
     // b) [ 0x1, 0x2b, 0x3b, 0x4], 1000, 500, 500, 500
     // where a[1:] cpow equals 1999 > 1500 for b[1:] even though b is longer
 
-    utu.set_main_chain(1, 3, block3a_digest);
-    utu.set_main_chain(1, 4, block4_digest);
+    utu.update_canonical_chain(1, 3, block3a_digest, Option::None);
+    utu.update_canonical_chain(1, 4, block4_digest, Option::None);
 }
-

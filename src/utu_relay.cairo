@@ -54,14 +54,18 @@ pub mod UtuRelay {
         }
 
 
-        fn set_main_chain(
-            ref self: ContractState, begin_height: u64, mut end_height: u64, end_block_hash: Digest
+        fn update_canonical_chain(
+            ref self: ContractState,
+            begin_height: u64,
+            mut end_height: u64,
+            end_block_hash: Digest,
+            height_proof: Option<(ByteArray, Span<Digest>)>
         ) {
             // This helper will write the ancestry of end_block_hash over [begin_height, end_height]
             // with chain[end_height] holding end_block_hash. If it overwrote some blocks, it
             // returns the cumulated pow of the overwritten blocks (current) and the fork (new).
             let (mut current_cpow, new_cpow) = self
-                .set_main_chain_helper(end_block_hash, end_height, begin_height - 1);
+                .update_canonical_chain_helper(end_block_hash, end_height, begin_height - 1);
 
             let mut next_block_i = end_height + 1;
             let mut next_chain_entry = self.chain.entry(next_block_i);
@@ -114,7 +118,7 @@ pub mod UtuRelay {
 
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
-        fn set_main_chain_helper(
+        fn update_canonical_chain_helper(
             ref self: ContractState, new_block_digest: Digest, block_index: u64, stop_index: u64,
         ) -> (u128, u128) {
             // fetch the block stored in the chain
@@ -146,7 +150,9 @@ pub mod UtuRelay {
             block_digest_entry.write(new_block_digest);
 
             let (cpow, new_cpow) = self
-                .set_main_chain_helper(new_block.prev_block_digest, block_index - 1, stop_index);
+                .update_canonical_chain_helper(
+                    new_block.prev_block_digest, block_index - 1, stop_index
+                );
 
             // if there was no conflict before
             if current_block_digest == new_block_digest {

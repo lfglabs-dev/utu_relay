@@ -37,8 +37,19 @@ pub trait IUtuRelay<TContractState> {
     /// This function allows setting the "official chain" (the strongest one) over the provided
     /// interval. It starts from the end block hash and verifies that this hash and all its
     /// parents are registered. The interval is specified as [ begin, end [.
-    fn set_main_chain(
-        ref self: TContractState, begin_height: u64, end_height: u64, end_block_hash: Digest
+    ///
+    /// The `height_proof` parameter is an optional tuple containing:
+    /// 1. The raw coinbase transaction of the first block in the interval.
+    /// 2. A Span of Digest values representing the brother hashes needed to verify the merkle root.
+    ///
+    /// This height_proof is required to verify the block height when chain[begin-1] is not set.
+    /// If chain[begin-1] is already set, height_proof can be omitted.
+    fn update_canonical_chain(
+        ref self: TContractState,
+        begin_height: u64,
+        end_height: u64,
+        end_block_hash: Digest,
+        height_proof: Option<(ByteArray, Span<Digest>)>
     );
 
     fn challenge_block(
