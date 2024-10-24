@@ -13,5 +13,6 @@ snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag 
 test = "snforge test"
 
 [[target.starknet-contract]]
-casm = true
 sierra = true
+casm = true
+casm-add-pythonic-hints = true
