@@ -3,8 +3,9 @@ pub mod UtuRelay {
     use starknet::storage::{StorageMapWriteAccess};
     use crate::{
         utils::hash::Digest,
-        bitcoin::block::{
-            BlockHeader, BlockHashTrait, PowVerificationTrait, compute_pow_from_target
+        bitcoin::{
+            block::{BlockHeader, BlockHashTrait, PowVerificationTrait, compute_pow_from_target},
+            block_height::get_block_height
         },
         interfaces::{IUtuRelay, BlockStatus, BlockStatusTrait}
     };
@@ -59,13 +60,38 @@ pub mod UtuRelay {
             begin_height: u64,
             mut end_height: u64,
             end_block_hash: Digest,
-            height_proof: Option<(ByteArray, Span<Digest>)>
+            height_proof: Option<(BlockHeader, ByteArray, Span<Digest>)>
         ) {
             // This helper will write the ancestry of end_block_hash over [begin_height, end_height]
             // with chain[end_height] holding end_block_hash. If it overwrote some blocks, it
             // returns the cumulated pow of the overwritten blocks (current) and the fork (new).
             let (mut current_cpow, new_cpow) = self
                 .update_canonical_chain_helper(end_block_hash, end_height, begin_height - 1);
+
+            if self.chain.read(begin_height - 1).is_zero() {
+                match height_proof {
+                    Option::None => {
+                        panic!(
+                            "You must provide a height proof if you don't continue the canonical chain."
+                        )
+                    },
+                    Option::Some((
+                        header, coinbase_raw_data, merkle_proof
+                    )) => {
+                        if self.chain.read(begin_height) != header.hash() {
+                            panic!(
+                                "Your provided proof doesn't correspond to the begin block height."
+                            );
+                        };
+                        let extracted_height = get_block_height(
+                            @header, @coinbase_raw_data, merkle_proof
+                        );
+                        if extracted_height != begin_height {
+                            panic!("Your provided proof doesn't prove the correct height.");
+                        };
+                    }
+                }
+            };
 
             let mut next_block_i = end_height + 1;
             let mut next_chain_entry = self.chain.entry(next_block_i);
@@ -94,7 +120,7 @@ pub mod UtuRelay {
 
             // and automatically revert everything if the fork cpow is weaker
             if current_cpow >= new_cpow {
-                panic!("Main chain has a stronger cumulated pow than your proposed fork.");
+                panic!("Canonical chain has a stronger cumulated pow than your proposed fork.");
             }
         }
 
@@ -135,9 +161,10 @@ pub mod UtuRelay {
                 if current_block_digest != Zero::zero()
                     && current_block_digest != new_block_digest {
                     panic!(
-                        "Main chain block preceding your proposed fork is inconsistent. Please provide a stronger replacement."
+                        "Canonical chain block preceding your proposed fork is inconsistent. Please provide a stronger replacement."
                     );
-                };
+                    // if there is no block, we need a height_proof
+                }
 
                 return (0, 0);
             }

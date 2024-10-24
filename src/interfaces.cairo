@@ -29,10 +29,10 @@ pub trait IUtuRelay<TContractState> {
     /// This function allows anyone to register blocks (they don't have to be contiguous or in
     /// order). It verifies that each registered block passes its threshold.
     ///
-    /// Note: Registered blocks are not automatically included in the main chain.
+    /// Note: Registered blocks are not automatically included in the canonical chain.
     fn register_blocks(ref self: TContractState, blocks: Span<BlockHeader>);
 
-    /// Sets the main chain for a given interval.
+    /// Sets the canonical chain for a given interval.
     ///
     /// This function allows setting the "official chain" (the strongest one) over the provided
     /// interval. It starts from the end block hash and verifies that this hash and all its
@@ -49,7 +49,7 @@ pub trait IUtuRelay<TContractState> {
         begin_height: u64,
         end_height: u64,
         end_block_hash: Digest,
-        height_proof: Option<(ByteArray, Span<Digest>)>
+        height_proof: Option<(BlockHeader, ByteArray, Span<Digest>)>
     );
 
     fn challenge_block(

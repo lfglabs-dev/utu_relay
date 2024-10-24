@@ -86,7 +86,7 @@ fn test_replacing_by_longer_chain() {
 
 
 #[test]
-#[should_panic(expected: "Main chain has a stronger cumulated pow than your proposed fork.")]
+#[should_panic(expected: "Canonical chain has a stronger cumulated pow than your proposed fork.")]
 fn test_replacing_by_shorter_chain() {
     let utu = deploy_utu();
 
@@ -144,7 +144,7 @@ fn test_replacing_by_shorter_chain() {
     ];
     utu.register_blocks(block_headers.span());
 
-    // we set the main chain to the stronger canonical chain
+    // we set the canonical chain to the stronger canonical chain
     utu.update_canonical_chain(865_698, 865_700, block_865_700_hash, Option::None);
 
     // then we try to update to an orphan block
@@ -155,7 +155,7 @@ fn test_replacing_by_shorter_chain() {
 
 
 #[test]
-#[should_panic(expected: "Main chain has a stronger cumulated pow than your proposed fork.")]
+#[should_panic(expected: "Canonical chain has a stronger cumulated pow than your proposed fork.")]
 fn test_replacing_by_equal_chain() {
     let utu = deploy_utu();
 
@@ -201,7 +201,7 @@ fn test_replacing_by_equal_chain() {
     let block_headers: Array<BlockHeader> = array![block_865_698, block_865_699_1, block_865_699_2];
     utu.register_blocks(block_headers.span());
 
-    // we set the main chain to the canonical chain
+    // we set the canonical chain to the canonical chain
     utu.update_canonical_chain(865_698, 865_700, block_865_699_hash_2, Option::None);
 
     // then we try to update to an orphan block (should be refused so that you can't update back and
@@ -212,7 +212,7 @@ fn test_replacing_by_equal_chain() {
 }
 
 #[test]
-#[should_panic(expected: "Main chain has a stronger cumulated pow than your proposed fork.")]
+#[should_panic(expected: "Canonical chain has a stronger cumulated pow than your proposed fork.")]
 fn test_replacing_by_longer_but_weaker_chain() {
     let utu = deploy_utu();
     // a random timestamp

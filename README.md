@@ -4,11 +4,11 @@ Utu Relay is a Starknet smart contract that enables secure verification of Bitco
 
 ## Overview
 
-Utu Relay allows anyone to register Bitcoin block headers on Starknet and set the main chain. Smart contracts can access these blocks, along with trust metrics like cumulative proof-of-work and unchallenged time, to verify that any Bitcoin transaction was accepted by the network.
+Utu Relay allows anyone to register Bitcoin block headers on Starknet and set the canonical chain. Smart contracts can access these blocks, along with trust metrics like cumulative proof-of-work and unchallenged time, to verify that any Bitcoin transaction was accepted by the network.
 
 Key features:
 - Verify any part of Bitcoin's history
-- Maintain an official main chain
+- Maintain canonical chain
 - Strong security guarantees
 - Game theory incentives for maintaining accuracy
 
@@ -47,7 +47,7 @@ Retrieve the block hash for a given block height.
 
 Here's a simplified example of how to securely verify a Bitcoin transaction:
 
-1. Ensure the block containing the transaction is part of the main chain using `update_canonical_chain`.
+1. Ensure the block containing the transaction is part of the canonical chain using `update_canonical_chain`.
 2. Verify the block's status using `get_status` to check if it's unchallenged and has been registered for a sufficient time.
 3. Adjust verification requirements based on the specific security needs of your application.
 
