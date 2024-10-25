@@ -82,10 +82,6 @@ pub mod UtuRelay {
                         header, coinbase_raw_data, merkle_proof
                     )) => {
                         if self.chain.read(begin_height) != header.hash() {
-                            println!("begin_height: {}", begin_height);
-                            println!(
-                                "hashes: {}, {}", self.chain.read(begin_height), header.hash()
-                            );
                             panic!(
                                 "Your provided proof doesn't correspond to the begin block height."
                             );
