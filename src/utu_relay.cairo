@@ -62,13 +62,16 @@ pub mod UtuRelay {
             end_block_hash: Digest,
             height_proof: Option<(BlockHeader, ByteArray, Span<Digest>)>
         ) {
+            let mut requires_height_proof = true;
             // This helper will write the ancestry of end_block_hash over [begin_height, end_height]
             // with chain[end_height] holding end_block_hash. If it overwrote some blocks, it
             // returns the cumulated pow of the overwritten blocks (current) and the fork (new).
             let (mut current_cpow, new_cpow) = self
-                .update_canonical_chain_helper(end_block_hash, end_height, begin_height - 1);
+                .update_canonical_chain_helper(
+                    ref requires_height_proof, end_block_hash, end_height, begin_height - 1
+                );
 
-            if self.chain.read(begin_height - 1).is_zero() {
+            if requires_height_proof {
                 match height_proof {
                     Option::None => {
                         panic!(
@@ -79,6 +82,10 @@ pub mod UtuRelay {
                         header, coinbase_raw_data, merkle_proof
                     )) => {
                         if self.chain.read(begin_height) != header.hash() {
+                            println!("begin_height: {}", begin_height);
+                            println!(
+                                "hashes: {}, {}", self.chain.read(begin_height), header.hash()
+                            );
                             panic!(
                                 "Your provided proof doesn't correspond to the begin block height."
                             );
@@ -145,7 +152,11 @@ pub mod UtuRelay {
     #[generate_trait]
     pub impl InternalImpl of InternalTrait {
         fn update_canonical_chain_helper(
-            ref self: ContractState, new_block_digest: Digest, block_index: u64, stop_index: u64,
+            ref self: ContractState,
+            ref requires_height_proof: bool,
+            new_block_digest: Digest,
+            block_index: u64,
+            stop_index: u64,
         ) -> (u128, u128) {
             // fetch the block stored in the chain
             let block_digest_entry = self.chain.entry(block_index);
@@ -158,12 +169,15 @@ pub mod UtuRelay {
             // For honest users, simply provide the correct replacement blocks
             if block_index == stop_index {
                 // new_block_digest is previous_block_digest of his son we just processed
-                if current_block_digest != Zero::zero()
-                    && current_block_digest != new_block_digest {
-                    panic!(
-                        "Canonical chain block preceding your proposed fork is inconsistent. Please provide a stronger replacement."
-                    );
-                    // if there is no block, we need a height_proof
+                if current_block_digest != Zero::zero() {
+                    if current_block_digest != new_block_digest {
+                        panic!(
+                            "Canonical chain block preceding your proposed fork is inconsistent. Please provide a stronger replacement."
+                        );
+                    } else {
+                        // if there is a valid connecting block, we don't need a height_proof
+                        requires_height_proof = false;
+                    };
                 }
 
                 return (0, 0);
@@ -178,11 +192,16 @@ pub mod UtuRelay {
 
             let (cpow, new_cpow) = self
                 .update_canonical_chain_helper(
-                    new_block.prev_block_digest, block_index - 1, stop_index
+                    ref requires_height_proof,
+                    new_block.prev_block_digest,
+                    block_index - 1,
+                    stop_index
                 );
 
             // if there was no conflict before
             if current_block_digest == new_block_digest {
+                // this block was already present, no need for a height proof
+                requires_height_proof = false;
                 return (0, 0);
                 // if there was a conflict (may be), we measure cpow & new_cpow
             } else {
