@@ -1,19 +1,17 @@
-use crate::bitcoin::block::BlockHeader;
+use crate::interfaces::HeightProof;
 use crate::bitcoin::transactions::coinbase::get_coinbase_data;
-use crate::utils::hash::Digest;
 use crate::utils::double_sha256::double_sha256_parent;
 
 
 /// Returns the block height given a block header, coinbase raw data, and an array of transaction
 /// hashes.
 /// Assumes the coinbase transaction is always the first transaction.
-pub fn get_block_height(
-    header: @BlockHeader, coinbase_raw_data: @ByteArray, mut tx_hashes: Span<Digest>
-) -> u64 {
+pub fn get_block_height(height_proof: @HeightProof) -> u64 {
     // Get coinbase data
-    let coinbase_data = get_coinbase_data(coinbase_raw_data);
+    let coinbase_data = get_coinbase_data(height_proof.coinbase_raw_tx);
 
     let mut merkle_root = coinbase_data.tx_id;
+    let mut tx_hashes = *height_proof.merkle_branch;
     loop {
         match tx_hashes.pop_front() {
             Option::Some(hash) => { merkle_root = double_sha256_parent(@merkle_root, hash); },
@@ -22,7 +20,7 @@ pub fn get_block_height(
     };
 
     // Verify the merkle root
-    assert(merkle_root == *header.merkle_root_hash, 'Invalid merkle root');
+    assert(merkle_root == *height_proof.header.merkle_root_hash, 'Invalid merkle root');
 
     // Return the block height from coinbase data
     coinbase_data.height
@@ -31,6 +29,7 @@ pub fn get_block_height(
 #[cfg(test)]
 mod tests {
     use super::get_block_height;
+    use crate::interfaces::HeightProof;
     use crate::bitcoin::block::BlockHeaderTrait;
     use crate::utils::hex::{from_hex, hex_to_hash_rev};
 
@@ -62,7 +61,10 @@ mod tests {
             hex_to_hash_rev("0b62547bbd044eab383bca97898d5616bd3bb38568bc8c9360fb37c6607a8536"),
         ];
 
-        let block_height = get_block_height(@header, @coinbase_tx_raw_data, tx_hashes.span());
+        let height_proof = HeightProof {
+            header: header, coinbase_raw_tx: coinbase_tx_raw_data, merkle_branch: tx_hashes.span()
+        };
+        let block_height = get_block_height(@height_proof);
         assert(block_height == 227_836, 'Incorrect block height');
     }
 }

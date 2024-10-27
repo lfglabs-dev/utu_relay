@@ -10,6 +10,13 @@ pub struct BlockStatus {
     pub pow: u128,
 }
 
+#[derive(Drop, Serde, Debug, PartialEq)]
+pub struct HeightProof {
+    pub header: BlockHeader,
+    pub coinbase_raw_tx: ByteArray,
+    pub merkle_branch: Span<Digest>
+}
+
 // todo: move out of interfaces
 #[generate_trait]
 pub impl BlockStatusImpl of BlockStatusTrait {
@@ -49,7 +56,7 @@ pub trait IUtuRelay<TContractState> {
         begin_height: u64,
         end_height: u64,
         end_block_hash: Digest,
-        height_proof: Option<(BlockHeader, ByteArray, Span<Digest>)>
+        height_proof: Option<HeightProof>
     );
 
     fn challenge_block(

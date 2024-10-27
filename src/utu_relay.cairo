@@ -7,7 +7,7 @@ pub mod UtuRelay {
             block::{BlockHeader, BlockHashTrait, PowVerificationTrait, compute_pow_from_target},
             block_height::get_block_height
         },
-        interfaces::{IUtuRelay, BlockStatus, BlockStatusTrait}
+        interfaces::{IUtuRelay, BlockStatus, HeightProof, BlockStatusTrait}
     };
     use starknet::storage::{
         StorageMapReadAccess, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry,
@@ -60,7 +60,7 @@ pub mod UtuRelay {
             begin_height: u64,
             mut end_height: u64,
             end_block_hash: Digest,
-            height_proof: Option<(BlockHeader, ByteArray, Span<Digest>)>
+            height_proof: Option<HeightProof>
         ) {
             let mut requires_height_proof = true;
             // This helper will write the ancestry of end_block_hash over [begin_height, end_height]
@@ -78,17 +78,13 @@ pub mod UtuRelay {
                             "You must provide a height proof if you don't continue the canonical chain."
                         )
                     },
-                    Option::Some((
-                        header, coinbase_raw_data, merkle_proof
-                    )) => {
-                        if self.chain.read(begin_height) != header.hash() {
+                    Option::Some(height_proof) => {
+                        if self.chain.read(begin_height) != height_proof.header.hash() {
                             panic!(
                                 "Your provided proof doesn't correspond to the begin block height."
                             );
                         };
-                        let extracted_height = get_block_height(
-                            @header, @coinbase_raw_data, merkle_proof
-                        );
+                        let extracted_height = get_block_height(@height_proof);
                         if extracted_height != begin_height {
                             panic!("Your provided proof doesn't prove the correct height.");
                         };
