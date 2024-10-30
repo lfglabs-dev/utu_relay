@@ -16,3 +16,7 @@ test = "snforge test"
 sierra = true
 casm = true
 casm-add-pythonic-hints = true
+
+[lib]
+sierra = true
+casm = false
