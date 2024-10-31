@@ -9,7 +9,6 @@ use snforge_std::{start_cheat_block_timestamp};
 #[test]
 fn test_single_block_registration() {
     let utu = deploy_utu();
-
     start_cheat_block_timestamp(utu.contract_address, 1234567890);
     let block_170_hash = hex_to_hash_rev(
         "00000000d1145790a8694403d4063f323d499e655c83426834d4ce2f8dd4a2ee"

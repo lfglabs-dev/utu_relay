@@ -1,7 +1,6 @@
 use crate::interfaces::HeightProof;
 use crate::bitcoin::transactions::coinbase::get_coinbase_data;
 use crate::utils::double_sha256::double_sha256_parent;
-use utils::hash::Digest;
 
 /// Returns the block height given a block header, coinbase raw data, and an array of transaction
 /// hashes.
