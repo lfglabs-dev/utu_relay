@@ -1,5 +1,4 @@
-use crate::utils::double_sha256::double_sha256_byte_array;
-use utils::hash::Digest;
+use utils::{hash::Digest, double_sha256::double_sha256_byte_array};
 
 
 #[derive(Drop)]
@@ -77,7 +76,7 @@ pub fn get_coinbase_data(raw_tx: @ByteArray) -> CoinbaseData {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::hex::{from_hex, hex_to_hash_rev};
+    use utils::hex::{from_hex, hex_to_hash_rev};
     use super::get_coinbase_data;
 
     #[test]

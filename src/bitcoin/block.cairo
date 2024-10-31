@@ -1,7 +1,5 @@
-use crate::utils::{
-    pow2::pow2_u128, numeric::u32_byte_reverse,  double_sha256::double_sha256_u32_array
-};
-use utils::hash::Digest;
+use crate::utils::{pow2::pow2_u128};
+use utils::{hash::Digest, numeric::u32_byte_reverse, double_sha256::double_sha256_u32_array};
 use core::traits::DivRem;
 
 /// Bitcoin block header structure based on:
@@ -158,7 +156,7 @@ mod tests {
     use super::{
         BlockHeader, BlockHeaderTrait, BlockHashTrait, PowVerificationTrait, compute_pow_from_target
     };
-    use crate::utils::hex::hex_to_hash_rev;
+    use utils::hex::hex_to_hash_rev;
 
     // compute block hash tests
 

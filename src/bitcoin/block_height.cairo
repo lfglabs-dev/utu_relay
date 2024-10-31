@@ -1,6 +1,6 @@
 use crate::interfaces::HeightProof;
-use crate::bitcoin::transactions::coinbase::get_coinbase_data;
-use crate::utils::double_sha256::double_sha256_parent;
+use crate::bitcoin::coinbase::get_coinbase_data;
+use utils::double_sha256::double_sha256_parent;
 
 /// Returns the block height given a block header, coinbase raw data, and an array of transaction
 /// hashes.
@@ -30,7 +30,7 @@ mod tests {
     use super::get_block_height;
     use crate::interfaces::HeightProof;
     use crate::bitcoin::block::BlockHeaderTrait;
-    use crate::utils::hex::{from_hex, hex_to_hash_rev};
+    use utils::hex::{from_hex, hex_to_hash_rev};
 
     #[test]
     fn test_get_block_height() {

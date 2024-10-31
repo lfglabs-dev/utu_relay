@@ -1,10 +1,10 @@
 use super::super::interfaces::{HeightProof, IUtuRelayDispatcherTrait};
 use crate::{
-    interfaces::BlockStatus, utils::{hex::{from_hex, hex_to_hash_rev}},
-    bitcoin::block::{BlockHeader, BlockHeaderTrait},
+    interfaces::BlockStatus, bitcoin::block::{BlockHeader, BlockHeaderTrait},
     tests::utils::{deploy_utu, BlockStatusIntoSpan, DigestIntoSpan},
 };
-use utils::hash::Digest;
+use utils::{hash::Digest, hex::{from_hex, hex_to_hash_rev}};
+
 use snforge_std::{start_cheat_block_timestamp, store};
 
 

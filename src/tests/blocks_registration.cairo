@@ -1,8 +1,6 @@
 use super::super::interfaces::{IUtuRelayDispatcherTrait, BlockStatus};
-use crate::{
-    utils::hex::hex_to_hash_rev, bitcoin::block::{BlockHeader, BlockHeaderTrait},
-    tests::utils::deploy_utu
-};
+use crate::{bitcoin::block::{BlockHeader, BlockHeaderTrait}, tests::utils::deploy_utu};
+use utils::hex::hex_to_hash_rev;
 use snforge_std::{start_cheat_block_timestamp};
 
 
