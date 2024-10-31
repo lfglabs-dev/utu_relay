@@ -24,6 +24,18 @@ pub impl DigestImpl of DigestTrait {
     }
 }
 
+pub impl UtuDigestIntoRaito of Into<Digest, utils::hash::Digest> {
+    fn into(self: Digest) -> utils::hash::Digest {
+        utils::hash::Digest { value: self.value }
+    }
+}
+
+pub impl RaitoDigestIntoUtu of Into<utils::hash::Digest, Digest> {
+    fn into(self: utils::hash::Digest) -> Digest {
+        Digest { value: self.value }
+    }
+}
+
 impl DigestZero of Zero<Digest> {
     fn zero() -> Digest {
         Digest { value: [0_u32; 8] }
