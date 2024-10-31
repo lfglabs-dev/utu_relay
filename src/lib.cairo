@@ -10,7 +10,7 @@ pub mod bitcoin {
 }
 pub mod utils {
     pub mod hex;
-    pub mod hash;
+    pub mod digest;
     pub mod numeric;
     pub mod double_sha256;
     pub mod pow2;

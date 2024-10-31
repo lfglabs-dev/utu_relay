@@ -2,7 +2,7 @@
 // https://github.com/keep-starknet-strange/raito/blob/1d2a115d872ea3b6e68eab345b4dde4d50f20d1a/packages/utils/src/hex.cairo
 
 //! Hex helpers
-use crate::utils::hash::Digest;
+use utils::hash::Digest;
 
 /// Get bytes from hex (base16)
 pub fn from_hex(hex_string: ByteArray) -> ByteArray {
@@ -88,7 +88,7 @@ fn hex_char_to_nibble(hex_char: u8) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::{from_hex, to_hex, hex_to_hash_rev};
-    use crate::utils::hash::Digest;
+    use utils::hash::Digest;
 
     #[test]
     fn test_bytes_from_hex() {

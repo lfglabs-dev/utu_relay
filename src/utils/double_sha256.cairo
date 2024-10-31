@@ -4,7 +4,7 @@
 
 //! Helpers for calculating double SHA256 hash digest.
 
-use super::hash::{Digest, DigestTrait};
+use utils::hash::{Digest, DigestTrait};
 use core::sha256::{compute_sha256_byte_array, compute_sha256_u32_array};
 
 /// Calculates double sha256 digest of a concatenation of two hashes.
@@ -40,7 +40,8 @@ pub fn double_sha256_u32_array(words: Array<u32>) -> Digest {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::{hex::from_hex, hash::Digest};
+    use crate::utils::{hex::from_hex};
+    use utils::hash::Digest;
     use super::{double_sha256_byte_array, double_sha256_u32_array, double_sha256_parent};
 
     #[test]

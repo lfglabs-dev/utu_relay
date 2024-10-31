@@ -1,5 +1,7 @@
-use crate::{utils::hash::Digest, bitcoin::block::BlockHeader};
+use crate::{bitcoin::block::BlockHeader, utils::digest::DigestStore};
 use starknet::get_block_timestamp;
+use utils::hash::Digest;
+
 
 #[derive(Drop, Serde, Debug, Default, PartialEq, starknet::Store)]
 pub struct BlockStatus {

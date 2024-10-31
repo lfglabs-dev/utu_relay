@@ -1,6 +1,8 @@
-use crate::{interfaces::{BlockStatus, IUtuRelayDispatcher}, utils::hash::Digest};
+use crate::{interfaces::{BlockStatus, IUtuRelayDispatcher}};
 use starknet::{ContractAddress, contract_address_const};
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
+use utils::hash::Digest;
+
 
 pub impl BlockStatusIntoSpan of Into<BlockStatus, Span<felt252>> {
     fn into(self: BlockStatus) -> Span<felt252> {

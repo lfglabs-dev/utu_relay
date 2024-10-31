@@ -1,4 +1,6 @@
-use crate::utils::{hash::Digest, double_sha256::double_sha256_byte_array};
+use crate::utils::double_sha256::double_sha256_byte_array;
+use utils::hash::Digest;
+
 
 #[derive(Drop)]
 pub struct CoinbaseData {

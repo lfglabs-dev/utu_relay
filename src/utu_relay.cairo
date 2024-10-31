@@ -2,17 +2,18 @@
 pub mod UtuRelay {
     use starknet::storage::{StorageMapWriteAccess};
     use crate::{
-        utils::hash::Digest,
         bitcoin::{
             block::{BlockHeader, BlockHashTrait, PowVerificationTrait, compute_pow_from_target},
             block_height::get_block_height
         },
+        utils::digest::DigestStore,
         interfaces::{IUtuRelay, BlockStatus, HeightProof, BlockStatusTrait}
     };
     use starknet::storage::{
         StorageMapReadAccess, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry,
         Map
     };
+    use utils::hash::Digest;
     use core::num::traits::zero::Zero;
 
 
