@@ -14,60 +14,77 @@ Key features:
 
 ## Security Guarantees
 
-- Accurate proof-of-work reporting
-- Accurate block height reporting
+- Accurate proof-of-work verification and reporting
+- Accurate block height verification through coinbase transaction proofs
 - Strongest proof-of-work chain selection
-- Economic incentives for maintaining the most up-to-date chain
-- On-chain detection of 51% attacks
+- On-chain detection of potential chain reorganizations
+- Configurable PoW thresholds for enhanced security
 
 ## Contract Interface
 
 ### register_blocks(blocks: Span<BlockHeader>)
 
-Register a list of Bitcoin block headers. Blocks don't need to be contiguous or in order.
+Register a list of Bitcoin block headers. Blocks don't need to be contiguous or in order. Each block must meet the configured proof-of-work threshold to be accepted.
 
-### update_canonical_chain(begin_height: u64, end_height: u64, end_block_hash: Digest, height_proof: Option<(ByteArray, Span<Digest>)>)
+### update_canonical_chain(begin_height: u64, end_height: u64, end_block_hash: Digest, height_proof: Option<HeightProof>)
 
-Set the official canonical chain for a given interval [begin_height, end_height). Verifies that the end block hash and all its parents are registered. The `height_proof` parameter is optional and is used to verify the block height when the chain at `begin-1` is not set.
-
-### challenge_block(block_height: u64, blocks: Array<BlockHeader>) → bool
-
-Challenge and potentially update a registered block, with an incentive mechanism for successful updates.
-To be implemented.
+Set the official canonical chain for a given interval [begin_height, end_height). The function:
+- Verifies that the end block hash and all its parents are registered
+- Requires a height_proof (containing coinbase transaction and merkle proof) when the previous chain height is not set
+- Ensures the chain represents the highest cumulative proof-of-work
 
 ### get_status(block_hash: Digest) → BlockStatus
 
-Retrieve information about a block using its hash, including its status and other relevant data.
+Retrieve information about a block using its hash. Returns:
+- registration_timestamp: When the block was registered
+- prev_block_digest: Hash of the previous block
+- pow: Proof-of-work value
 
 ### get_block(height: u64) → Digest
 
-Retrieve the block hash for a given block height.
+Retrieve the block hash for a given block height in the canonical chain. Returns zero if no block is set at that height.
 
 ## Usage Example
 
 Here's a simplified example of how to securely verify a Bitcoin transaction:
 
-1. Ensure the block containing the transaction is part of the canonical chain using `update_canonical_chain`.
-2. Verify the block's status using `get_status` to check if it's unchallenged and has been registered for a sufficient time.
-3. Adjust verification requirements based on the specific security needs of your application.
+1. Register the block containing your transaction and its ancestors using `register_blocks`
+2. Update the canonical chain using `update_canonical_chain` to include your block
+3. Verify the block's status using `get_status` to check:
+   - The registration timestamp (for time-based security)
+   - The proof-of-work value meets your security requirements
+4. Use `get_block` to confirm the block remains in the canonical chain
 
-## Fraud Detection and Reporting
+## Security Considerations
 
-- Detect fraud: Compare registered block hash with Bitcoin Core output for the same height.
-- Report fraud: Call `challenge_block` with the correct block headers to replace the fraudulent entry.
+Since the incentive mechanism is not yet implemented, users should:
+- Require high proof-of-work thresholds for sensitive operations
+- Wait for multiple confirmations after the target block
+- Implement additional application-specific security measures (like checking block timestamp)
+- Consider running their own Bitcoin node to verify block submissions
+
+## Fraud Detection and Reporting (Not Yet Implemented)
+
+The fraud detection and reporting mechanism is planned but not yet implemented. When implemented, it will allow:
+
+- Detecting fraud by comparing registered block hashes with Bitcoin Core output for the same height
+- Reporting fraud by calling `challenge_block` with correct block headers to replace fraudulent entries
+- Receiving a small reward for successful fraud challenges that help maintain chain integrity
 
 ## Potential Attack Vectors
 
 Two potential attack vectors exist:
 
-1. Submission of fraudulent block headers: An attacker could attempt to submit false block headers, particularly if no one is actively submitting fraud proofs or using the valid block hash.
+1. Submission of fraudulent block headers: An attacker could attempt to submit false block headers, particularly if no one is actively challenging these submissions or using the valid block hash.
 
 2. 51% attack: Theoretically, an attacker with control over 51% of the Bitcoin hashrate for an extended period could manipulate the relay.
+
+3. Precomputed future blocks: An attacker could precompute fraudulent block headers with future timestamps, avoiding competition with the actual Bitcoin network. This can be mitigated by refusing blocks with timestamps greater than the current Starknet block timestamp.
 
 However, these attacks are generally impractical due to:
 
 - Economic disincentives: The cost of executing such attacks typically outweighs potential gains.
 - Detection mechanisms: On-chain detection of 51% attacks allows contracts to implement additional security measures.
-- Active monitoring: Honest users and watchers can submit fraud proofs, quickly challenging any false submissions.
+- Active monitoring: Honest users and watchers can quickly challenge fraudulent submissions.
 
 The combination of these factors significantly mitigates the risk of successful attacks on the Utu Relay system.
