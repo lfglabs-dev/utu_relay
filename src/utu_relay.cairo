@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod UtuRelay {
-    use starknet::storage::{StorageMapWriteAccess};
+    use starknet::{get_block_timestamp, storage::{StorageMapWriteAccess}};
     use crate::{
         bitcoin::{
             block::{BlockHeader, BlockHashTrait, PowVerificationTrait, compute_pow_from_target},
@@ -130,6 +130,44 @@ pub mod UtuRelay {
 
         fn get_block(self: @ContractState, height: u64) -> Digest {
             self.chain.read(height)
+        }
+
+        fn assert_safe(
+            self: @ContractState,
+            mut block_height: u64,
+            block_hash: Digest,
+            min_cpow: u128,
+            min_age: u64,
+        ) {
+            // check block hash
+            let found_block_hash = self.chain.read(block_height);
+            if block_hash != found_block_hash {
+                panic!("Unexpected block hash.");
+            }
+
+            // check block registration (to give time to challenge)
+            let mut block_status = self.blocks.read(block_hash);
+            let timestamp = get_block_timestamp();
+            if timestamp - block_status.registration_timestamp < min_age {
+                panic!("Block registration age is below minimum required.")
+            };
+
+            // check that cpow is good
+            let mut cpow = 0;
+            loop {
+                cpow += block_status.pow;
+
+                if cpow >= min_cpow {
+                    break;
+                }
+                block_height += 1;
+                let block_hash = self.chain.read(block_height);
+                if block_hash == Zero::zero() {
+                    panic!("Cumulative PoW is not enough to guarantee safety.");
+                } else {
+                    block_status = self.blocks.read(block_hash);
+                };
+            };
         }
     }
 

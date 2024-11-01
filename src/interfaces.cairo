@@ -75,4 +75,10 @@ pub trait IUtuRelay<TContractState> {
     /// This function retrieves the block hash for a given height in the canonical chain.
     /// If no block is set at this height, it returns an empty Digest (Zero::zero()).
     fn get_block(self: @TContractState, height: u64) -> Digest;
+
+    /// Asserts that a block meets the specified safety requirements.
+    /// Reverts if the block does not meet the safety requirements.
+    fn assert_safe(
+        self: @TContractState, block_height: u64, block_hash: Digest, min_cpow: u128, min_age: u64,
+    );
 }

@@ -12,6 +12,7 @@ pub mod utils {
 #[cfg(test)]
 mod tests {
     mod utils;
+    mod safety;
     mod blocks_registration;
     mod fork_resolutions;
 }
