@@ -9,13 +9,29 @@ pub mod UtuRelay {
         utils::digest::DigestStore,
         interfaces::{IUtuRelay, BlockStatus, HeightProof, BlockStatusTrait}
     };
-    use starknet::storage::{
-        StorageMapReadAccess, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry,
-        Map
+    use starknet::{
+        ClassHash, ContractAddress,
+        storage::{
+            StorageMapReadAccess, StoragePointerReadAccess, StoragePointerWriteAccess,
+            StoragePathEntry, Map
+        }
     };
     use utils::hash::Digest;
     use core::num::traits::zero::Zero;
+    use openzeppelin::{access::ownable::OwnableComponent, upgrades::UpgradeableComponent,};
+    use openzeppelin_upgrades::interface::IUpgradeable;
 
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+
+    // add an owner
+    #[abi(embed_v0)]
+    impl OwnableTwoStepMixinImpl =
+        OwnableComponent::OwnableMixinImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    // make it upgradable
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -23,14 +39,37 @@ pub mod UtuRelay {
         blocks: Map<Digest, BlockStatus>,
         // This is a mapping of each chain height to a block from the strongest chain registered
         chain: Map<u64, Digest>,
+        // Components
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {}
+    enum Event {
+        #[flat]
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event
+    }
 
     #[constructor]
-    fn constructor(ref self: ContractState) {}
+    fn constructor(ref self: ContractState, owner: ContractAddress) {
+        self.ownable.initializer(owner);
+    }
+
+    #[abi(embed_v0)]
+    impl UpgradeableImpl of IUpgradeable<ContractState> {
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            // This function can only be called by the owner
+            self.ownable.assert_only_owner();
+
+            // Replace the class hash upgrading the contract
+            self.upgradeable.upgrade(new_class_hash);
+        }
+    }
 
     #[abi(embed_v0)]
     impl UtuRelayImpl of IUtuRelay<ContractState> {
