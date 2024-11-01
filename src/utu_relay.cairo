@@ -124,15 +124,6 @@ pub mod UtuRelay {
             }
         }
 
-
-        fn challenge_block(
-            ref self: ContractState, block_height: u64, blocks: Array<BlockHeader>
-        ) -> bool {
-            // Implementation for challenge_block
-            // For now, we'll just return false
-            false
-        }
-
         fn get_status(self: @ContractState, block_hash: Digest) -> BlockStatus {
             self.blocks.read(block_hash)
         }

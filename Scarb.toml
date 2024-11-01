@@ -5,7 +5,7 @@ edition = "2024_07"
 
 [dependencies]
 starknet = "2.8.4"
-utils = { git = "https://github.com/keep-starknet-strange/raito.git" }
+utils = { git = "https://github.com/keep-starknet-strange/raito.git", rev = "02a13045b7074ae2b3247431cd91f1ad76263fb2" }
 
 [dev-dependencies]
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.31.0" }

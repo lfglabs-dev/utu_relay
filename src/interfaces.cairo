@@ -61,11 +61,18 @@ pub trait IUtuRelay<TContractState> {
         height_proof: Option<HeightProof>
     );
 
-    fn challenge_block(
-        ref self: TContractState, block_height: u64, blocks: Array<BlockHeader>
-    ) -> bool;
-
+    /// Returns the status of a block given its hash.
+    ///
+    /// This function retrieves information about any registered block, regardless of whether
+    /// it is part of the canonical chain or not. The returned status includes:
+    /// - registration_timestamp: when the block was registered
+    /// - prev_block_digest: hash of the previous block
+    /// - pow: proof of work value
     fn get_status(self: @TContractState, block_hash: Digest) -> BlockStatus;
 
+    /// Returns the hash of the block at the specified height in the canonical chain.
+    ///
+    /// This function retrieves the block hash for a given height in the canonical chain.
+    /// If no block is set at this height, it returns an empty Digest (Zero::zero()).
     fn get_block(self: @TContractState, height: u64) -> Digest;
 }
