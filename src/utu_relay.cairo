@@ -39,6 +39,8 @@ pub mod UtuRelay {
         blocks: Map<Digest, BlockStatus>,
         // This is a mapping of each chain height to a block from the strongest chain registered
         chain: Map<u64, Digest>,
+        // This allows to keep a clean constructor and thus make address deterministic
+        initialized: bool,
         // Components
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
@@ -56,9 +58,7 @@ pub mod UtuRelay {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {
-        self.ownable.initializer(owner);
-    }
+    fn constructor(ref self: ContractState) {}
 
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
@@ -73,6 +73,19 @@ pub mod UtuRelay {
 
     #[abi(embed_v0)]
     impl UtuRelayImpl of IUtuRelay<ContractState> {
+        fn initialize(ref self: ContractState, owner: ContractAddress) {
+            // Check if already initialized
+            if self.initialized.read() {
+                panic!("Contract is already initialized");
+            }
+
+            // Set initialized flag
+            self.initialized.write(true);
+
+            // Initialize ownership
+            self.ownable.initializer(owner);
+        }
+
         fn register_blocks(ref self: ContractState, mut blocks: Span<BlockHeader>) {
             loop {
                 match blocks.pop_front() {
@@ -93,7 +106,6 @@ pub mod UtuRelay {
                 };
             };
         }
-
 
         fn update_canonical_chain(
             ref self: ContractState,

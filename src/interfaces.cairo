@@ -1,5 +1,5 @@
 use crate::{bitcoin::block::BlockHeader, utils::digest::DigestStore};
-use starknet::get_block_timestamp;
+use starknet::{ContractAddress, get_block_timestamp};
 use utils::hash::Digest;
 
 
@@ -33,6 +33,21 @@ pub impl BlockStatusImpl of BlockStatusTrait {
 
 #[starknet::interface]
 pub trait IUtuRelay<TContractState> {
+    /// Initializes the contract with an owner.
+    ///
+    /// This function is used instead of a constructor to ensure the contract address is fully
+    /// deterministic. When using a constructor, the constructor arguments become part of the
+    /// contract's address calculation. By moving initialization to a separate function that can
+    /// only be called once, we keep the address calculation dependent only on the contract's code
+    /// and class hash.
+    ///
+    /// # Arguments
+    /// * `owner` - The address that will be set as the contract owner
+    ///
+    /// # Reverts
+    /// * If the contract has already been initialized
+    fn initialize(ref self: TContractState, owner: ContractAddress);
+
     /// Registers new blocks with the relay.
     ///
     /// This function allows anyone to register blocks (they don't have to be contiguous or in

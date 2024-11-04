@@ -22,12 +22,14 @@ pub impl DigestIntoSpan of Into<Digest, Span<felt252>> {
 
 pub fn deploy_utu() -> IUtuRelayDispatcher {
     let contract = declare("UtuRelay").unwrap().contract_class();
-    let _owner: ContractAddress = contract_address_const::<'owner'>();
 
-    let mut constructor_calldata = array![];
-    let (contract_address, _constructor_returned_data) = contract
-        .deploy(@constructor_calldata)
-        .unwrap();
+    // Deploy with empty constructor
+    let (contract_address, _) = contract.deploy(@ArrayTrait::new()).unwrap();
+    let dispatcher = IUtuRelayDispatcher { contract_address };
 
-    IUtuRelayDispatcher { contract_address }
+    // Initialize the contract with owner
+    let owner: ContractAddress = contract_address_const::<'owner'>();
+    dispatcher.initialize(owner);
+
+    dispatcher
 }
