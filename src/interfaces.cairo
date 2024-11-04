@@ -60,7 +60,7 @@ pub trait IUtuRelay<TContractState> {
     ///
     /// This function allows setting the "official chain" (the strongest one) over the provided
     /// interval. It starts from the end block hash and verifies that this hash and all its
-    /// parents are registered. The interval is specified as [ begin, end [.
+    /// parents are registered. The interval is specified as [ begin, end ].
     ///
     /// The `height_proof` parameter is an optional tuple containing:
     /// 1. The raw coinbase transaction of the first block in the interval.
