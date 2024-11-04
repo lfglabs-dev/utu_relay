@@ -1,4 +1,4 @@
-use crate::{interfaces::{BlockStatus, IUtuRelayDispatcher}};
+use crate::{interfaces::{BlockStatus, IUtuRelayDispatcher, IUtuRelayDispatcherTrait}};
 use starknet::{ContractAddress, contract_address_const};
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
 use utils::hash::Digest;
