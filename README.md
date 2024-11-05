@@ -22,15 +22,22 @@ Key features:
 
 ## Contract Interface
 
+### initialize(owner: ContractAddress)
+
+Initializes the contract with an owner. This function is used instead of a constructor to ensure the contract address is fully deterministic.
+
 ### register_blocks(blocks: Span<BlockHeader>)
 
 Register a list of Bitcoin block headers. Blocks don't need to be contiguous or in order. Each block must meet the configured proof-of-work threshold to be accepted.
 
 ### update_canonical_chain(begin_height: u64, end_height: u64, end_block_hash: Digest, height_proof: Option<HeightProof>)
 
-Set the official canonical chain for a given interval [begin_height, end_height). The function:
+Set the official canonical chain for a given interval [begin_height, end_height]. The function:
 - Verifies that the end block hash and all its parents are registered
-- Requires a height_proof (containing coinbase transaction and merkle proof) when the previous chain height is not set
+- Requires a height_proof when chain[begin-1] is not set
+- Height proof includes:
+  - Raw coinbase transaction of the first block
+  - Merkle branch for verification
 - Ensures the chain represents the highest cumulative proof-of-work
 
 ### get_status(block_hash: Digest) → BlockStatus
@@ -43,6 +50,17 @@ Retrieve information about a block using its hash. Returns:
 ### get_block(height: u64) → Digest
 
 Retrieve the block hash for a given block height in the canonical chain. Returns zero if no block is set at that height.
+
+### assert_safe(block_height: u64, block_hash: Digest, min_cpow: u128, min_age: u64)
+
+Asserts that a block meets specified safety requirements. Will revert if the block does not meet these requirements.
+
+## Deployment Addresses
+
+The contract is deployed at the following address on both Starknet Sepolia and Mainnet:
+'''
+0x04d3c95735a74aafd9092705943b0602f100d77f2ce872ffd4962c4924e6d145
+'''
 
 ## Usage Example
 
