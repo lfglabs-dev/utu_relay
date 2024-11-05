@@ -58,9 +58,9 @@ Asserts that a block meets specified safety requirements. Will revert if the blo
 ## Deployment Addresses
 
 The contract is deployed at the following address on both Starknet Sepolia and Mainnet:
-'''
+```
 0x04d3c95735a74aafd9092705943b0602f100d77f2ce872ffd4962c4924e6d145
-'''
+```
 
 ## Usage Example
 
