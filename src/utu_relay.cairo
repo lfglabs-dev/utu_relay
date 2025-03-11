@@ -19,7 +19,7 @@ pub mod UtuRelay {
     use utils::hash::Digest;
     use core::num::traits::zero::Zero;
     use openzeppelin::{access::ownable::OwnableComponent, upgrades::UpgradeableComponent,};
-    use openzeppelin_upgrades::interface::IUpgradeable;
+    use openzeppelin::upgrades::interface::IUpgradeable;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);

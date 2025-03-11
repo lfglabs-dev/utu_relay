@@ -5,7 +5,7 @@ use crate::{
 };
 use utils::{hex::{from_hex, hex_to_hash_rev}};
 use snforge_std::start_cheat_block_timestamp;
-use utils::numeric::u32_byte_reverse;
+use crate::utils::numeric::u32_byte_reverse;
 
 #[test]
 fn test_is_safe() {
