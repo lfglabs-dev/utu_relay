@@ -3,7 +3,7 @@ name: CI Tests
 on: [push, pull_request, pull_request_target]
 
 env:
-  SCARB_VERSION: 2.8.4
+  SCARB_VERSION: 2.9.2
 
 jobs:
   scarb-tests:
