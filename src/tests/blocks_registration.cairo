@@ -162,3 +162,40 @@ fn test_same_height_registration() {
         'unexpected status for block 2'
     );
 }
+
+#[test]
+fn test_regtest() {
+    let utu = deploy_utu();
+    start_cheat_block_timestamp(utu.contract_address, 1751877380);
+    let block_hash = hex_to_hash_rev(
+        "07844a242e3e4b0529b163083ddcef6e82135368f0ef3bd715556a2623c54e53"
+    );
+
+    let current_status = utu.get_status(block_hash);
+    assert(current_status == Default::default(), 'unexpected initial status');
+
+    let block: BlockHeader = BlockHeaderTrait::new(
+         805306368_u32,
+        hex_to_hash_rev("44ed2b1dd080a3fc209ba5a3eed9f3733b25b69f6d4cf04b7f694fd08bbd544e"),
+        hex_to_hash_rev("d42bdf0534fd74dade2acdf853039007e436524c0d33ac00b5e0b3b67ddbe9ef"),
+        1741877380_u32,
+        0x207fffff_u32,
+        2_u32,
+    );
+
+    // Load valid header from block
+    let block_headers: Array<BlockHeader> = array![block];
+    utu.register_blocks(block_headers.span());
+
+    let found_status = utu.get_status(block_hash);
+    assert(
+        found_status == BlockStatus {
+            registration_timestamp: 1751877380,
+            prev_block_digest: hex_to_hash_rev(
+                "000000002a22cfee1f2c846adbd12b3e183d4f97683f85dad08a79780a84bd55"
+            ),
+            pow: 4295032833,
+        },
+        'unexpected final status'
+    );
+}

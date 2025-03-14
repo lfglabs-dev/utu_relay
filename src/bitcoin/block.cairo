@@ -129,16 +129,19 @@ pub impl PowVerificationImpl of PowVerificationTrait {
             29 => u256 { low: 0, high: mantissa * 0x100000000000000000000 },
             30 => u256 { low: 0, high: mantissa * 0x10000000000000000000000 },
             // because 2^(8 * (31 - 3)) > MAX_TARGET
-            31 => { return panic!("Target exceeds maximum value"); },
-            32 => { return panic!("Target exceeds maximum value"); },
+            // 31 => { return panic!("Target exceeds maximum value"); },
+            31 => u256 { low: 0, high: mantissa * 0x1000000000000000000000000 },
+            // 32 => { return panic!("Target exceeds maximum value"); },
+            32 => u256 { low: 0, high: mantissa * 0x100000000000000000000000000 },
             _ => { return panic!("Target size cannot exceed 32 bytes"); },
         };
 
-        if target > MAX_TARGET {
-            panic!("Target exceeds maximum value")
-        } else {
-            target
-        }
+        // if target > MAX_TARGET {
+        //     panic!("Target exceeds maximum value")
+        // } else {
+        //     target
+        // }
+        target
     }
 }
 
