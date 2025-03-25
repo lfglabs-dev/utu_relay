@@ -1,5 +1,5 @@
-use crate::utils::{pow2::pow2_u128};
-use utils::{hash::Digest, numeric::u32_byte_reverse, double_sha256::double_sha256_u32_array};
+use crate::utils::{pow2::pow2_u128, numeric::{u32_byte_reverse, double_sha256_u32_array}};
+use utils::hash::Digest;
 use core::traits::DivRem;
 
 /// Bitcoin block header structure based on:

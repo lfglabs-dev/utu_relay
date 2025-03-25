@@ -8,6 +8,7 @@ pub mod bitcoin {
 pub mod utils {
     pub mod digest;
     pub mod pow2;
+    pub mod numeric;
 }
 #[cfg(test)]
 mod tests {
